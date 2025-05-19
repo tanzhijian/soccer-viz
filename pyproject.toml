@@ -6,7 +6,7 @@ authors = [
     { name = "tanzhijian", email = "tanzhijianorg@outlook.com" }
 ]
 dependencies = [
-    "plotly>=6.1.0",
+    "plotly==6.0.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

@@ -14,5 +14,5 @@ narwhals==1.40.0
     # via plotly
 packaging==25.0
     # via plotly
-plotly==6.1.0
+plotly==6.0.1
     # via soccer-viz

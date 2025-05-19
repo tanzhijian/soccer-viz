@@ -74,7 +74,7 @@ pexpect==4.9.0
     # via ipython
 platformdirs==4.3.8
     # via jupyter-core
-plotly==6.1.0
+plotly==6.0.1
     # via soccer-viz
 pluggy==1.6.0
     # via pytest
