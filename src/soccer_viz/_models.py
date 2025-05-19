@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 
 class Colors:
@@ -22,12 +22,15 @@ class Point(TypedDict):
     y: float
 
 
-class Coordinates:
+class PitchCoordinates:
     def __init__(
         self,
-        length: float,
-        width: float,
+        length: float = 105,
+        width: float = 68,
         *,
+        length_direction: Literal["left", "right"] = "right",
+        width_direction: Literal["up", "down"] = "up",
+        vertical: bool = False,
         lock_standard_values: bool = True,
         center_circle_radius: float = 9.15,
         penalty_area_length: float = 16.5,
@@ -39,44 +42,43 @@ class Coordinates:
     ) -> None:
         self.length = length
         self.width = width
+        self.length_direction = length_direction
+        self.width_direction = width_direction
+        self.vertical = vertical
 
         self.xaxis_scale = length / 105
         self.yaxis_scale = width / 68
 
         self.center_circle_radius = (
-            center_circle_radius * self.xaxis_scale
+            center_circle_radius
             if lock_standard_values
-            else center_circle_radius
+            else center_circle_radius * self.xaxis_scale
         )
         self.penalty_area_length = (
-            penalty_area_length * self.xaxis_scale
+            penalty_area_length
             if lock_standard_values
-            else penalty_area_length
+            else penalty_area_length * self.xaxis_scale
         )
         self.penalty_mark_distance = (
-            penalty_mark_distance * self.xaxis_scale
+            penalty_mark_distance
             if lock_standard_values
-            else penalty_mark_distance
+            else penalty_mark_distance * self.xaxis_scale
         )
         self.goal_area_length = (
-            goal_area_length * self.xaxis_scale
+            goal_area_length
             if lock_standard_values
-            else goal_area_length
+            else goal_area_length * self.xaxis_scale
         )
         self.corner_arc_radius = (
-            corner_arc_radius * self.xaxis_scale
+            corner_arc_radius
             if lock_standard_values
-            else corner_arc_radius
+            else corner_arc_radius * self.xaxis_scale
         )
         self.goal_width = (
-            goal_width * self.xaxis_scale
-            if lock_standard_values
-            else goal_width
+            goal_width if lock_standard_values else goal_width * self.xaxis_scale
         )
         self.goal_height = (
-            goal_height * self.xaxis_scale
-            if lock_standard_values
-            else goal_height
+            goal_height if lock_standard_values else goal_height * self.xaxis_scale
         )
 
     def pitch_area(self) -> Area:
@@ -110,7 +112,7 @@ class Coordinates:
             "x1": self.length / 2,
             "y1": self.width,
         }
-    
+
     def left_penalty_arc(self) -> Area:
         return {
             "x0": self.penalty_mark_distance - self.center_circle_radius,
@@ -118,7 +120,7 @@ class Coordinates:
             "x1": self.penalty_mark_distance + self.center_circle_radius,
             "y1": self.width / 2 + self.center_circle_radius,
         }
-    
+
     def left_penalty_area(self) -> Area:
         return {
             "x0": 0,
@@ -126,7 +128,7 @@ class Coordinates:
             "x1": self.penalty_area_length,
             "y1": self.width / 2 + self.goal_width / 2 + self.penalty_area_length,
         }
-    
+
     def left_penalty_mark(self) -> Area:
         return {
             "x0": self.penalty_mark_distance - 0.2,
@@ -134,7 +136,7 @@ class Coordinates:
             "x1": self.penalty_mark_distance + 0.2,
             "y1": self.width / 2 + 0.2,
         }
-    
+
     def left_goal_area(self) -> Area:
         return {
             "x0": 0,
@@ -142,7 +144,7 @@ class Coordinates:
             "x1": self.goal_area_length,
             "y1": self.width / 2 + self.goal_width / 2 + self.goal_area_length,
         }
-    
+
     def left_goal(self) -> Area:
         return {
             "x0": -self.goal_height,
@@ -150,7 +152,7 @@ class Coordinates:
             "x1": 0,
             "y1": self.width / 2 + self.goal_width / 2,
         }
-    
+
     def right_penalty_arc(self) -> Area:
         return {
             "x0": self.length - self.penalty_mark_distance - self.center_circle_radius,
@@ -158,7 +160,7 @@ class Coordinates:
             "x1": self.length - self.penalty_mark_distance + self.center_circle_radius,
             "y1": self.width / 2 + self.center_circle_radius,
         }
-    
+
     def right_penalty_area(self) -> Area:
         return {
             "x0": self.length,
@@ -166,7 +168,7 @@ class Coordinates:
             "x1": self.length - self.penalty_area_length,
             "y1": self.width / 2 + self.goal_width / 2 + self.penalty_area_length,
         }
-    
+
     def right_penalty_mark(self) -> Area:
         return {
             "x0": self.length - self.penalty_mark_distance - 0.2,
@@ -174,7 +176,7 @@ class Coordinates:
             "x1": self.length - self.penalty_mark_distance + 0.2,
             "y1": self.width / 2 + 0.2,
         }
-    
+
     def right_goal_area(self) -> Area:
         return {
             "x0": self.length,
@@ -182,7 +184,7 @@ class Coordinates:
             "x1": self.length - self.goal_area_length,
             "y1": self.width / 2 + self.goal_width / 2 + self.goal_area_length,
         }
-    
+
     def right_goal(self) -> Area:
         return {
             "x0": self.length,

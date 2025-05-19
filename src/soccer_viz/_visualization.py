@@ -1,16 +1,17 @@
 import plotly.graph_objects as go
 
-from ._models import Colors, Coordinates, Point
+from ._models import Colors, PitchCoordinates, Point
 
 
 class Pitch:
     def __init__(
         self,
-        length: float = 105,
-        width: float = 68,
+        coordinates: PitchCoordinates | None = None,
     ) -> None:
         self.fig = go.Figure()
-        self.coordinates = Coordinates(length, width)
+        self.coordinates = (
+            coordinates if coordinates is not None else PitchCoordinates()
+        )
         self._draw_pitch()
 
     def _draw_pitch(self) -> None:
@@ -135,17 +136,24 @@ class Pitch:
         )
 
     def show(self) -> None:
+        xaxis_start, xaxis_end = -5., self.coordinates.length + 5.
+        if self.coordinates.length_direction == "left":
+            xaxis_start, xaxis_end = xaxis_end, xaxis_start
+        yaxis_start, yaxis_end = -5., self.coordinates.width + 5.
+        if self.coordinates.width_direction == "down":
+            yaxis_start, yaxis_end = yaxis_end, yaxis_start
+
         self.fig.update_layout(
             width=800,
             height=600,
             title=f"{self.coordinates.length}m * {self.coordinates.width}m",
             xaxis=dict(
-                range=[-5, self.coordinates.length + 5],
+                range=[xaxis_start, xaxis_end],
                 showgrid=False,
                 zeroline=False,
             ),
             yaxis=dict(
-                range=[-5, self.coordinates.width + 5],
+                range=[yaxis_start, yaxis_end],
                 showgrid=False,
                 zeroline=False,
                 scaleanchor="x",
