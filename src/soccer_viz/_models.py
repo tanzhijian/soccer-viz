@@ -40,6 +40,8 @@ class PitchCoordinates:
         goal_width: float = 7.32,
         goal_height: float = 2.44,
     ) -> None:
+        if vertical:
+            length, width = width, length
         self.length = length
         self.width = width
         self.length_direction = length_direction
@@ -106,6 +108,13 @@ class PitchCoordinates:
         }
 
     def halfway_line(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": 0,
+                "y0": self.width / 2,
+                "x1": self.length,
+                "y1": self.width / 2,
+            }
         return {
             "x0": self.length / 2,
             "y0": 0,
@@ -114,6 +123,13 @@ class PitchCoordinates:
         }
 
     def left_penalty_arc(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - self.center_circle_radius,
+                "y0": self.penalty_mark_distance - self.center_circle_radius,
+                "x1": self.length / 2 + self.center_circle_radius,
+                "y1": self.penalty_mark_distance + self.center_circle_radius,
+            }
         return {
             "x0": self.penalty_mark_distance - self.center_circle_radius,
             "y0": self.width / 2 - self.center_circle_radius,
@@ -122,6 +138,13 @@ class PitchCoordinates:
         }
 
     def left_penalty_area(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - self.goal_width / 2 - self.penalty_area_length,
+                "y0": 0,
+                "x1": self.length / 2 + self.goal_width / 2 + self.penalty_area_length,
+                "y1": self.penalty_area_length,
+            }
         return {
             "x0": 0,
             "y0": self.width / 2 - self.goal_width / 2 - self.penalty_area_length,
@@ -130,6 +153,13 @@ class PitchCoordinates:
         }
 
     def left_penalty_mark(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - 0.2,
+                "y0": self.penalty_mark_distance - 0.2,
+                "x1": self.length / 2 + 0.2,
+                "y1": self.penalty_mark_distance + 0.2,
+            }
         return {
             "x0": self.penalty_mark_distance - 0.2,
             "y0": self.width / 2 - 0.2,
@@ -138,6 +168,13 @@ class PitchCoordinates:
         }
 
     def left_goal_area(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - self.goal_width / 2 - self.goal_area_length,
+                "y0": 0,
+                "x1": self.length / 2 + self.goal_width / 2 + self.goal_area_length,
+                "y1": self.goal_area_length,
+            }
         return {
             "x0": 0,
             "y0": self.width / 2 - self.goal_width / 2 - self.goal_area_length,
@@ -146,6 +183,13 @@ class PitchCoordinates:
         }
 
     def left_goal(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - self.goal_width / 2,
+                "y0": 0,
+                "x1": self.length / 2 + self.goal_width / 2,
+                "y1": -self.goal_height,
+            }
         return {
             "x0": -self.goal_height,
             "y0": self.width / 2 - self.goal_width / 2,
@@ -154,6 +198,17 @@ class PitchCoordinates:
         }
 
     def right_penalty_arc(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - self.center_circle_radius,
+                "y0": self.width
+                - self.penalty_mark_distance
+                - self.center_circle_radius,
+                "x1": self.length / 2 + self.center_circle_radius,
+                "y1": self.width
+                - self.penalty_mark_distance
+                + self.center_circle_radius,
+            }
         return {
             "x0": self.length - self.penalty_mark_distance - self.center_circle_radius,
             "y0": self.width / 2 - self.center_circle_radius,
@@ -162,6 +217,13 @@ class PitchCoordinates:
         }
 
     def right_penalty_area(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - self.goal_width / 2 - self.penalty_area_length,
+                "y0": self.width,
+                "x1": self.length / 2 + self.goal_width / 2 + self.penalty_area_length,
+                "y1": self.width - self.penalty_area_length,
+            }
         return {
             "x0": self.length,
             "y0": self.width / 2 - self.goal_width / 2 - self.penalty_area_length,
@@ -170,6 +232,13 @@ class PitchCoordinates:
         }
 
     def right_penalty_mark(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - 0.2,
+                "y0": self.width - self.penalty_mark_distance - 0.2,
+                "x1": self.length / 2 + 0.2,
+                "y1": self.width - self.penalty_mark_distance + 0.2,
+            }
         return {
             "x0": self.length - self.penalty_mark_distance - 0.2,
             "y0": self.width / 2 - 0.2,
@@ -178,6 +247,13 @@ class PitchCoordinates:
         }
 
     def right_goal_area(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - self.goal_width / 2 - self.goal_area_length,
+                "y0": self.width,
+                "x1": self.length / 2 + self.goal_width / 2 + self.goal_area_length,
+                "y1": self.width - self.goal_area_length,
+            }
         return {
             "x0": self.length,
             "y0": self.width / 2 - self.goal_width / 2 - self.goal_area_length,
@@ -186,6 +262,13 @@ class PitchCoordinates:
         }
 
     def right_goal(self) -> Area:
+        if self.vertical:
+            return {
+                "x0": self.length / 2 - self.goal_width / 2,
+                "y0": self.width,
+                "x1": self.length / 2 + self.goal_width / 2,
+                "y1": self.width + self.goal_height,
+            }
         return {
             "x0": self.length,
             "y0": self.width / 2 - self.goal_width / 2,

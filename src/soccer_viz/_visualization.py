@@ -136,16 +136,21 @@ class Pitch:
         )
 
     def show(self) -> None:
-        xaxis_start, xaxis_end = -5., self.coordinates.length + 5.
+        fig_width = 800
+        fig_height = 600
+        if self.coordinates.vertical:
+            fig_width, fig_height = fig_height, fig_width
+
+        xaxis_start, xaxis_end = -5.0, self.coordinates.length + 5.0
         if self.coordinates.length_direction == "left":
             xaxis_start, xaxis_end = xaxis_end, xaxis_start
-        yaxis_start, yaxis_end = -5., self.coordinates.width + 5.
+        yaxis_start, yaxis_end = -5.0, self.coordinates.width + 5.0
         if self.coordinates.width_direction == "down":
             yaxis_start, yaxis_end = yaxis_end, yaxis_start
 
         self.fig.update_layout(
-            width=800,
-            height=600,
+            width=fig_width,
+            height=fig_height,
             title=f"{self.coordinates.length}m * {self.coordinates.width}m",
             xaxis=dict(
                 range=[xaxis_start, xaxis_end],
