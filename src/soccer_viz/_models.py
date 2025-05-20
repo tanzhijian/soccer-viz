@@ -25,12 +25,12 @@ class Point(TypedDict):
 class PitchCoordinates:
     def __init__(
         self,
-        length: float = 105,
-        width: float = 68,
+        length: float | None = None,
+        width: float | None = None,
         *,
         vertical: bool = False,
-        invert_xaxis: bool = False,
-        invert_yaxis: bool = False,
+        xaxis_range: tuple[float, float] | None = None,
+        yaxis_range: tuple[float, float] | None = None,
         lock_standard_values: bool = True,
         center_circle_radius: float = 9.15,
         penalty_area_length: float = 16.5,
@@ -40,13 +40,22 @@ class PitchCoordinates:
         goal_width: float = 7.32,
         goal_height: float = 2.44,
     ) -> None:
-        if vertical:
-            length, width = width, length
+        if length is None:
+            if vertical:
+                length = 68
+            else:
+                length = 105
+        if width is None:
+            if vertical:
+                width = 105
+            else:
+                width = 68
         self.length = length
         self.width = width
         self.vertical = vertical
-        self.invert_xaxis = invert_xaxis
-        self.invert_yaxis = invert_yaxis
+
+        self.xaxis_range = xaxis_range if xaxis_range is not None else (0.0, length)
+        self.yaxis_range = yaxis_range if yaxis_range is not None else (0.0, width)
 
         self.xaxis_scale = length / 105
         self.yaxis_scale = width / 68
@@ -83,195 +92,269 @@ class PitchCoordinates:
             goal_height if lock_standard_values else goal_height * self.xaxis_scale
         )
 
+    @property
+    def xaxis_start(self) -> float:
+        return self.xaxis_range[0]
+
+    @property
+    def xaxis_end(self) -> float:
+        return self.xaxis_range[1]
+
+    @property
+    def yaxis_start(self) -> float:
+        return self.yaxis_range[0]
+
+    @property
+    def yaxis_end(self) -> float:
+        return self.yaxis_range[1]
+
+    def _xaxis_operate(self, value: float) -> float:
+        if self.xaxis_start < self.xaxis_end:
+            return self.xaxis_start + value
+        return self.xaxis_start - value
+
+    def _yaxis_operate(self, value: float) -> float:
+        if self.yaxis_start < self.yaxis_end:
+            return self.yaxis_start + value
+        return self.yaxis_start - value
+
     def pitch_area(self) -> Area:
         return {
-            "x0": 0,
-            "y0": 0,
-            "x1": self.length,
-            "y1": self.width,
+            "x0": self.xaxis_start,
+            "y0": self.yaxis_start,
+            "x1": self.xaxis_end,
+            "y1": self.yaxis_end,
         }
 
     def centre_circle(self) -> Area:
         return {
-            "x0": self.length / 2 - self.center_circle_radius,
-            "y0": self.width / 2 - self.center_circle_radius,
-            "x1": self.length / 2 + self.center_circle_radius,
-            "y1": self.width / 2 + self.center_circle_radius,
+            "x0": self._xaxis_operate(self.length / 2 - self.center_circle_radius),
+            "y0": self._yaxis_operate(self.width / 2 - self.center_circle_radius),
+            "x1": self._xaxis_operate(self.length / 2 + self.center_circle_radius),
+            "y1": self._yaxis_operate(self.width / 2 + self.center_circle_radius),
         }
 
     def centre_mark(self) -> Area:
         return {
-            "x0": self.length / 2 - 0.2,
-            "y0": self.width / 2 - 0.2,
-            "x1": self.length / 2 + 0.2,
-            "y1": self.width / 2 + 0.2,
+            "x0": self._xaxis_operate(self.length / 2 - 0.2),
+            "y0": self._yaxis_operate(self.width / 2 - 0.2),
+            "x1": self._xaxis_operate(self.length / 2 + 0.2),
+            "y1": self._yaxis_operate(self.width / 2 + 0.2),
         }
 
     def halfway_line(self) -> Area:
         if self.vertical:
             return {
-                "x0": 0,
-                "y0": self.width / 2,
-                "x1": self.length,
-                "y1": self.width / 2,
+                "x0": self.xaxis_start,
+                "y0": self._yaxis_operate(self.width / 2),
+                "x1": self.xaxis_end,
+                "y1": self._yaxis_operate(self.width / 2),
             }
         return {
-            "x0": self.length / 2,
-            "y0": 0,
-            "x1": self.length / 2,
-            "y1": self.width,
+            "x0": self._xaxis_operate(self.length / 2),
+            "y0": self.yaxis_start,
+            "x1": self._xaxis_operate(self.length / 2),
+            "y1": self.yaxis_end,
         }
 
     def left_penalty_arc(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - self.center_circle_radius,
-                "y0": self.penalty_mark_distance - self.center_circle_radius,
-                "x1": self.length / 2 + self.center_circle_radius,
-                "y1": self.penalty_mark_distance + self.center_circle_radius,
+                "x0": self._xaxis_operate(self.length / 2 - self.center_circle_radius),
+                "y0": self._yaxis_operate(
+                    self.penalty_mark_distance - self.center_circle_radius
+                ),
+                "x1": self._xaxis_operate(self.length / 2 + self.center_circle_radius),
+                "y1": self._yaxis_operate(
+                    self.penalty_mark_distance + self.center_circle_radius
+                ),
             }
         return {
-            "x0": self.penalty_mark_distance - self.center_circle_radius,
-            "y0": self.width / 2 - self.center_circle_radius,
-            "x1": self.penalty_mark_distance + self.center_circle_radius,
-            "y1": self.width / 2 + self.center_circle_radius,
+            "x0": self._xaxis_operate(
+                self.penalty_mark_distance - self.center_circle_radius
+            ),
+            "y0": self._yaxis_operate(self.width / 2 - self.center_circle_radius),
+            "x1": self._xaxis_operate(
+                self.penalty_mark_distance + self.center_circle_radius
+            ),
+            "y1": self._yaxis_operate(self.width / 2 + self.center_circle_radius),
         }
 
     def left_penalty_area(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - self.goal_width / 2 - self.penalty_area_length,
-                "y0": 0,
-                "x1": self.length / 2 + self.goal_width / 2 + self.penalty_area_length,
-                "y1": self.penalty_area_length,
+                "x0": self._xaxis_operate(
+                    self.length / 2 - self.goal_width / 2 - self.penalty_area_length
+                ),
+                "y0": self.yaxis_start,
+                "x1": self._xaxis_operate(
+                    self.length / 2 + self.goal_width / 2 + self.penalty_area_length
+                ),
+                "y1": self._yaxis_operate(self.penalty_area_length),
             }
         return {
-            "x0": 0,
-            "y0": self.width / 2 - self.goal_width / 2 - self.penalty_area_length,
-            "x1": self.penalty_area_length,
-            "y1": self.width / 2 + self.goal_width / 2 + self.penalty_area_length,
+            "x0": self.xaxis_start,
+            "y0": self._yaxis_operate(
+                self.width / 2 - self.goal_width / 2 - self.penalty_area_length
+            ),
+            "x1": self._xaxis_operate(self.penalty_area_length),
+            "y1": self._yaxis_operate(
+                self.width / 2 + self.goal_width / 2 + self.penalty_area_length
+            ),
         }
 
     def left_penalty_mark(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - 0.2,
-                "y0": self.penalty_mark_distance - 0.2,
-                "x1": self.length / 2 + 0.2,
-                "y1": self.penalty_mark_distance + 0.2,
+                "x0": self._xaxis_operate(self.length / 2 - 0.2),
+                "y0": self._yaxis_operate(self.penalty_mark_distance - 0.2),
+                "x1": self._xaxis_operate(self.length / 2 + 0.2),
+                "y1": self._yaxis_operate(self.penalty_mark_distance + 0.2),
             }
         return {
-            "x0": self.penalty_mark_distance - 0.2,
-            "y0": self.width / 2 - 0.2,
-            "x1": self.penalty_mark_distance + 0.2,
-            "y1": self.width / 2 + 0.2,
+            "x0": self._xaxis_operate(self.penalty_mark_distance - 0.2),
+            "y0": self._yaxis_operate(self.width / 2 - 0.2),
+            "x1": self._xaxis_operate(self.penalty_mark_distance + 0.2),
+            "y1": self._yaxis_operate(self.width / 2 + 0.2),
         }
 
     def left_goal_area(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - self.goal_width / 2 - self.goal_area_length,
-                "y0": 0,
-                "x1": self.length / 2 + self.goal_width / 2 + self.goal_area_length,
-                "y1": self.goal_area_length,
+                "x0": self._xaxis_operate(
+                    self.length / 2 - self.goal_width / 2 - self.goal_area_length
+                ),
+                "y0": self.yaxis_start,
+                "x1": self._xaxis_operate(
+                    self.length / 2 + self.goal_width / 2 + self.goal_area_length
+                ),
+                "y1": self._yaxis_operate(self.goal_area_length),
             }
         return {
-            "x0": 0,
-            "y0": self.width / 2 - self.goal_width / 2 - self.goal_area_length,
-            "x1": self.goal_area_length,
-            "y1": self.width / 2 + self.goal_width / 2 + self.goal_area_length,
+            "x0": self.xaxis_start,
+            "y0": self._yaxis_operate(
+                self.width / 2 - self.goal_width / 2 - self.goal_area_length
+            ),
+            "x1": self._xaxis_operate(self.goal_area_length),
+            "y1": self._yaxis_operate(
+                self.width / 2 + self.goal_width / 2 + self.goal_area_length
+            ),
         }
 
     def left_goal(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - self.goal_width / 2,
-                "y0": 0,
-                "x1": self.length / 2 + self.goal_width / 2,
-                "y1": -self.goal_height,
+                "x0": self._xaxis_operate(self.length / 2 - self.goal_width / 2),
+                "y0": self.yaxis_start,
+                "x1": self._xaxis_operate(self.length / 2 + self.goal_width / 2),
+                "y1": self._yaxis_operate(-self.goal_height),
             }
         return {
-            "x0": -self.goal_height,
-            "y0": self.width / 2 - self.goal_width / 2,
-            "x1": 0,
-            "y1": self.width / 2 + self.goal_width / 2,
+            "x0": self._xaxis_operate(-self.goal_height),
+            "y0": self._yaxis_operate(self.width / 2 - self.goal_width / 2),
+            "x1": self.xaxis_start,
+            "y1": self._yaxis_operate(self.width / 2 + self.goal_width / 2),
         }
 
     def right_penalty_arc(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - self.center_circle_radius,
-                "y0": self.width
-                - self.penalty_mark_distance
-                - self.center_circle_radius,
-                "x1": self.length / 2 + self.center_circle_radius,
-                "y1": self.width
-                - self.penalty_mark_distance
-                + self.center_circle_radius,
+                "x0": self._xaxis_operate(self.length / 2 - self.center_circle_radius),
+                "y0": self._yaxis_operate(
+                    self.width - self.penalty_mark_distance - self.center_circle_radius
+                ),
+                "x1": self._xaxis_operate(self.length / 2 + self.center_circle_radius),
+                "y1": self._yaxis_operate(
+                    self.width - self.penalty_mark_distance + self.center_circle_radius
+                ),
             }
         return {
-            "x0": self.length - self.penalty_mark_distance - self.center_circle_radius,
-            "y0": self.width / 2 - self.center_circle_radius,
-            "x1": self.length - self.penalty_mark_distance + self.center_circle_radius,
-            "y1": self.width / 2 + self.center_circle_radius,
+            "x0": self._xaxis_operate(
+                self.length - self.penalty_mark_distance - self.center_circle_radius
+            ),
+            "y0": self._yaxis_operate(self.width / 2 - self.center_circle_radius),
+            "x1": self._xaxis_operate(
+                self.length - self.penalty_mark_distance + self.center_circle_radius
+            ),
+            "y1": self._yaxis_operate(self.width / 2 + self.center_circle_radius),
         }
 
     def right_penalty_area(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - self.goal_width / 2 - self.penalty_area_length,
-                "y0": self.width,
-                "x1": self.length / 2 + self.goal_width / 2 + self.penalty_area_length,
-                "y1": self.width - self.penalty_area_length,
+                "x0": self._xaxis_operate(
+                    self.length / 2 - self.goal_width / 2 - self.penalty_area_length
+                ),
+                "y0": self.yaxis_end,
+                "x1": self._xaxis_operate(
+                    self.length / 2 + self.goal_width / 2 + self.penalty_area_length
+                ),
+                "y1": self._yaxis_operate(self.width - self.penalty_area_length),
             }
         return {
-            "x0": self.length,
-            "y0": self.width / 2 - self.goal_width / 2 - self.penalty_area_length,
-            "x1": self.length - self.penalty_area_length,
-            "y1": self.width / 2 + self.goal_width / 2 + self.penalty_area_length,
+            "x0": self.xaxis_end,
+            "y0": self._yaxis_operate(
+                self.width / 2 - self.goal_width / 2 - self.penalty_area_length
+            ),
+            "x1": self._xaxis_operate(self.length - self.penalty_area_length),
+            "y1": self._yaxis_operate(
+                self.width / 2 + self.goal_width / 2 + self.penalty_area_length
+            ),
         }
 
     def right_penalty_mark(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - 0.2,
-                "y0": self.width - self.penalty_mark_distance - 0.2,
-                "x1": self.length / 2 + 0.2,
-                "y1": self.width - self.penalty_mark_distance + 0.2,
+                "x0": self._xaxis_operate(self.length / 2 - 0.2),
+                "y0": self._yaxis_operate(
+                    self.width - self.penalty_mark_distance - 0.2
+                ),
+                "x1": self._xaxis_operate(self.length / 2 + 0.2),
+                "y1": self._yaxis_operate(
+                    self.width - self.penalty_mark_distance + 0.2
+                ),
             }
         return {
-            "x0": self.length - self.penalty_mark_distance - 0.2,
-            "y0": self.width / 2 - 0.2,
-            "x1": self.length - self.penalty_mark_distance + 0.2,
-            "y1": self.width / 2 + 0.2,
+            "x0": self._xaxis_operate(self.length - self.penalty_mark_distance - 0.2),
+            "y0": self._yaxis_operate(self.width / 2 - 0.2),
+            "x1": self._xaxis_operate(self.length - self.penalty_mark_distance + 0.2),
+            "y1": self._yaxis_operate(self.width / 2 + 0.2),
         }
 
     def right_goal_area(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - self.goal_width / 2 - self.goal_area_length,
-                "y0": self.width,
-                "x1": self.length / 2 + self.goal_width / 2 + self.goal_area_length,
-                "y1": self.width - self.goal_area_length,
+                "x0": self._xaxis_operate(
+                    self.length / 2 - self.goal_width / 2 - self.goal_area_length
+                ),
+                "y0": self.yaxis_end,
+                "x1": self._xaxis_operate(
+                    self.length / 2 + self.goal_width / 2 + self.goal_area_length
+                ),
+                "y1": self._yaxis_operate(self.width - self.goal_area_length),
             }
         return {
-            "x0": self.length,
-            "y0": self.width / 2 - self.goal_width / 2 - self.goal_area_length,
-            "x1": self.length - self.goal_area_length,
-            "y1": self.width / 2 + self.goal_width / 2 + self.goal_area_length,
+            "x0": self.xaxis_end,
+            "y0": self._yaxis_operate(
+                self.width / 2 - self.goal_width / 2 - self.goal_area_length
+            ),
+            "x1": self._xaxis_operate(self.length - self.goal_area_length),
+            "y1": self._yaxis_operate(
+                self.width / 2 + self.goal_width / 2 + self.goal_area_length
+            ),
         }
 
     def right_goal(self) -> Area:
         if self.vertical:
             return {
-                "x0": self.length / 2 - self.goal_width / 2,
-                "y0": self.width,
-                "x1": self.length / 2 + self.goal_width / 2,
-                "y1": self.width + self.goal_height,
+                "x0": self._xaxis_operate(self.length / 2 - self.goal_width / 2),
+                "y0": self.yaxis_end,
+                "x1": self._xaxis_operate(self.length / 2 + self.goal_width / 2),
+                "y1": self._yaxis_operate(self.width + self.goal_height),
             }
         return {
-            "x0": self.length,
-            "y0": self.width / 2 - self.goal_width / 2,
-            "x1": self.length + self.goal_height,
-            "y1": self.width / 2 + self.goal_width / 2,
+            "x0": self.xaxis_end,
+            "y0": self._yaxis_operate(self.width / 2 - self.goal_width / 2),
+            "x1": self._xaxis_operate(self.length + self.goal_height),
+            "y1": self._yaxis_operate(self.width / 2 + self.goal_width / 2),
         }

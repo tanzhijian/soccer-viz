@@ -135,30 +135,29 @@ class Pitch:
             )
         )
 
+    def _calc_axis_range(self, axis_range: tuple[float, float]) -> tuple[float, float]:
+        a, b = axis_range
+        if a < b:
+            return (a - 5, b + 5)
+        return (a + 5, b - 5)
+
     def show(self) -> None:
         fig_width = 800
         fig_height = 600
         if self.coordinates.vertical:
             fig_width, fig_height = fig_height, fig_width
 
-        xaxis_start, xaxis_end = -5.0, self.coordinates.length + 5.0
-        if self.coordinates.invert_xaxis:
-            xaxis_start, xaxis_end = xaxis_end, xaxis_start
-        yaxis_start, yaxis_end = -5.0, self.coordinates.width + 5.0
-        if self.coordinates.invert_yaxis:
-            yaxis_start, yaxis_end = yaxis_end, yaxis_start
-
         self.fig.update_layout(
             width=fig_width,
             height=fig_height,
             title=f"{self.coordinates.length}m * {self.coordinates.width}m",
             xaxis=dict(
-                range=[xaxis_start, xaxis_end],
+                range=self._calc_axis_range(self.coordinates.xaxis_range),
                 showgrid=False,
                 zeroline=False,
             ),
             yaxis=dict(
-                range=[yaxis_start, yaxis_end],
+                range=self._calc_axis_range(self.coordinates.yaxis_range),
                 showgrid=False,
                 zeroline=False,
                 scaleanchor="x",
