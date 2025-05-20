@@ -128,7 +128,7 @@ def test_custom_coordinates() -> None:
     coordinates = PitchCoordinates(
         length=120,
         width=80,
-        width_direction='down',
+        invert_yaxis=True,
         center_circle_radius=10,
         penalty_area_length=20,
         penalty_mark_distance=12,

@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict
+from typing import TypedDict
 
 
 class Colors:
@@ -28,9 +28,9 @@ class PitchCoordinates:
         length: float = 105,
         width: float = 68,
         *,
-        length_direction: Literal["left", "right"] = "right",
-        width_direction: Literal["up", "down"] = "up",
         vertical: bool = False,
+        invert_xaxis: bool = False,
+        invert_yaxis: bool = False,
         lock_standard_values: bool = True,
         center_circle_radius: float = 9.15,
         penalty_area_length: float = 16.5,
@@ -44,9 +44,9 @@ class PitchCoordinates:
             length, width = width, length
         self.length = length
         self.width = width
-        self.length_direction = length_direction
-        self.width_direction = width_direction
         self.vertical = vertical
+        self.invert_xaxis = invert_xaxis
+        self.invert_yaxis = invert_yaxis
 
         self.xaxis_scale = length / 105
         self.yaxis_scale = width / 68

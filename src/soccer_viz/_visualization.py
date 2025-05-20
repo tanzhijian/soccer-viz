@@ -142,10 +142,10 @@ class Pitch:
             fig_width, fig_height = fig_height, fig_width
 
         xaxis_start, xaxis_end = -5.0, self.coordinates.length + 5.0
-        if self.coordinates.length_direction == "left":
+        if self.coordinates.invert_xaxis:
             xaxis_start, xaxis_end = xaxis_end, xaxis_start
         yaxis_start, yaxis_end = -5.0, self.coordinates.width + 5.0
-        if self.coordinates.width_direction == "down":
+        if self.coordinates.invert_yaxis:
             yaxis_start, yaxis_end = yaxis_end, yaxis_start
 
         self.fig.update_layout(
