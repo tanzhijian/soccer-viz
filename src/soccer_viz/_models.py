@@ -25,12 +25,10 @@ class Point(TypedDict):
 class PitchCoordinates:
     def __init__(
         self,
-        length: float | None = None,
-        width: float | None = None,
         *,
-        vertical: bool = False,
         xaxis_range: tuple[float, float] | None = None,
         yaxis_range: tuple[float, float] | None = None,
+        vertical: bool = False,
         lock_standard_values: bool = True,
         center_circle_radius: float = 9.15,
         penalty_area_length: float = 16.5,
@@ -40,25 +38,35 @@ class PitchCoordinates:
         goal_width: float = 7.32,
         goal_height: float = 2.44,
     ) -> None:
-        if length is None:
+        if xaxis_range is None:
             if vertical:
                 length = 68
             else:
                 length = 105
-        if width is None:
+            self.xaxis_range = (0.0, length)
+        else:
+            self.xaxis_range = xaxis_range
+        if yaxis_range is None:
             if vertical:
                 width = 105
             else:
                 width = 68
-        self.length = length
-        self.width = width
+            self.yaxis_range = (0.0, width)
+        else:
+            self.yaxis_range = yaxis_range
+
+        self.xaxis_start = self.xaxis_range[0]
+        self.xaxis_end = self.xaxis_range[1]
+        self.yaxis_start = self.yaxis_range[0]
+        self.yaxis_end = self.yaxis_range[1]
+        
+        self.length = abs(self.xaxis_range[1] - self.xaxis_range[0])
+        self.width = abs(self.yaxis_range[1] - self.yaxis_range[0])
+
         self.vertical = vertical
 
-        self.xaxis_range = xaxis_range if xaxis_range is not None else (0.0, length)
-        self.yaxis_range = yaxis_range if yaxis_range is not None else (0.0, width)
-
-        self.xaxis_scale = length / 105
-        self.yaxis_scale = width / 68
+        self.xaxis_scale = self.length / 105
+        self.yaxis_scale = self.width / 68
 
         self.center_circle_radius = (
             center_circle_radius
@@ -91,22 +99,6 @@ class PitchCoordinates:
         self.goal_height = (
             goal_height if lock_standard_values else goal_height * self.xaxis_scale
         )
-
-    @property
-    def xaxis_start(self) -> float:
-        return self.xaxis_range[0]
-
-    @property
-    def xaxis_end(self) -> float:
-        return self.xaxis_range[1]
-
-    @property
-    def yaxis_start(self) -> float:
-        return self.yaxis_range[0]
-
-    @property
-    def yaxis_end(self) -> float:
-        return self.yaxis_range[1]
 
     def _xaxis_operate(self, value: float) -> float:
         if self.xaxis_start < self.xaxis_end:
