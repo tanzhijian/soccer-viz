@@ -17,11 +17,6 @@ class Area(TypedDict):
     y1: float
 
 
-class Point(TypedDict):
-    x: float
-    y: float
-
-
 class PitchMarkings:
     def __init__(
         self,

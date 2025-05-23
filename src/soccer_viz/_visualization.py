@@ -1,6 +1,6 @@
 import plotly.graph_objects as go
 
-from ._models import Colors, PitchCoordinates, Point
+from ._models import Colors, PitchCoordinates
 
 
 class Pitch:
@@ -113,11 +113,17 @@ class Pitch:
             fillcolor=Colors.light_gray,
         )
 
-    def add_point(self, point: Point, text: str, color: str = Colors.red) -> None:
+    def add_point(
+        self,
+        x: float,
+        y: float,
+        text: str,
+        color: str = Colors.red,
+    ) -> None:
         self.fig.add_trace(
             go.Scatter(
-                x=[point["x"]],
-                y=[point["y"]],
+                x=[x],
+                y=[y],
                 mode="markers+text",
                 marker=dict(size=10, color=color),
                 text=text,
@@ -125,11 +131,18 @@ class Pitch:
             )
         )
 
-    def add_line(self, start: Point, end: Point, color: str = Colors.green) -> None:
+    def add_line(
+        self,
+        start_x: float,
+        start_y: float,
+        end_x: float,
+        end_y: float,
+        color: str = Colors.green,
+    ) -> None:
         self.fig.add_trace(
             go.Scatter(
-                x=[start["x"], end["x"]],
-                y=[start["y"], end["y"]],
+                x=[start_x, end_x],
+                y=[start_y, end_y],
                 mode="lines",
                 line=dict(color=color, width=2),
             )
