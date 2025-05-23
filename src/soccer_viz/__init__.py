@@ -1,7 +1,8 @@
-from ._models import PitchCoordinates
+from ._models import PitchCoordinates, PitchMarkings
 from ._visualization import Pitch
 
-__all__ = [
+__all__ = (
     "PitchCoordinates",
+    "PitchMarkings",
     "Pitch",
-]
+)
