@@ -40,7 +40,7 @@ class PitchMarkings:
     def change_scale(
         self,
         xaxis_scale: float,
-        yaxis_scale,
+        yaxis_scale: float,
         vertical: bool = False,
     ) -> None:
         if vertical:
@@ -78,7 +78,12 @@ class PitchCoordinates:
         if not lock_markings:
             self.markings.change_scale(self.xaxis_scale, self.yaxis_scale, vertical)
 
-    def _init_axis_range(self, axis_range, vertical, is_x):
+    def _init_axis_range(
+        self,
+        axis_range: tuple[float, float] | None,
+        vertical: bool,
+        is_x: bool,
+    ) -> tuple[float, float]:
         if axis_range is not None:
             return axis_range
         if is_x:
@@ -88,8 +93,12 @@ class PitchCoordinates:
             width = 105 if vertical else 68
             return (0.0, width)
 
-    def _init_scale(self):
-        return self.length / 105, self.width / 68
+    def _init_scale(self) -> tuple[float, float]:
+        standard_length = 105
+        standard_width = 68
+        if self.vertical:
+            standard_length, standard_width = standard_width, standard_length
+        return self.length / standard_length, self.width / standard_width
 
     def _xaxis_operate(self, value: float) -> float:
         if self.xaxis_start < self.xaxis_end:
