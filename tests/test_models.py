@@ -27,6 +27,14 @@ def test_pitch_markings_vertical_change_scale() -> None:
     assert scale_100(markings.center_circle_radius) == scale_100(9.15 * 1.5)
     assert scale_100(markings.penalty_area_length) == scale_100(16.5 * 2)
 
+def test_pitch_markings_equality() -> None:
+    markings1 = PitchMarkings(center_circle_radius=0.1 + 0.2)
+    markings2 = PitchMarkings(center_circle_radius=0.3)
+    assert markings1 == markings2
+
+    markings3 = PitchMarkings(center_circle_radius=10)
+    assert markings1 != markings3
+
 
 class TestStandardCoordinates:
     @pytest.fixture(scope="class")
@@ -39,6 +47,10 @@ class TestStandardCoordinates:
         assert int(coordinates.xaxis_scale) == 1
         assert int(coordinates.yaxis_scale) == 1
         assert int(coordinates.markings.penalty_mark_distance) == 11
+
+    def test_equality(self, coordinates: PitchCoordinates) -> None:
+        assert coordinates == PitchCoordinates()
+        assert coordinates != PitchCoordinates(xaxis_range=(-60, 60))
 
     def test_pitch_area(self, coordinates: PitchCoordinates) -> None:
         pitch_area = coordinates.pitch_area()

@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+from math import isclose
 from typing import TypedDict
 
 
@@ -17,25 +19,23 @@ class Area(TypedDict):
     y1: float
 
 
+@dataclass
 class PitchMarkings:
-    def __init__(
-        self,
-        *,
-        center_circle_radius: float = 9.15,
-        penalty_area_length: float = 16.5,
-        penalty_mark_distance: float = 11,
-        goal_area_length: float = 5.5,
-        corner_arc_radius: float = 1,
-        goal_width: float = 7.32,
-        goal_height: float = 2.44,
-    ) -> None:
-        self.center_circle_radius = center_circle_radius
-        self.penalty_area_length = penalty_area_length
-        self.penalty_mark_distance = penalty_mark_distance
-        self.goal_area_length = goal_area_length
-        self.corner_arc_radius = corner_arc_radius
-        self.goal_width = goal_width
-        self.goal_height = goal_height
+    center_circle_radius: float = 9.15
+    penalty_area_length: float = 16.5
+    penalty_mark_distance: float = 11
+    goal_area_length: float = 5.5
+    corner_arc_radius: float = 1
+    goal_width: float = 7.32
+    goal_height: float = 2.44
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, PitchMarkings):
+            return NotImplemented
+        return all(
+            isclose(getattr(self, field), getattr(other, field))
+            for field in self.__dataclass_fields__
+        )
 
     def change_scale(
         self,
@@ -77,6 +77,22 @@ class PitchCoordinates:
         self.markings = markings if markings is not None else PitchMarkings()
         if not lock_markings:
             self.markings.change_scale(self.xaxis_scale, self.yaxis_scale, vertical)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, PitchCoordinates):
+            return NotImplemented
+        xaxis_equal = isclose(self.xaxis_start, other.xaxis_start) and isclose(
+            self.xaxis_end, other.xaxis_end
+        )
+        yaxis_equal = isclose(self.yaxis_start, other.yaxis_start) and isclose(
+            self.yaxis_end, other.yaxis_end
+        )
+        return (
+            xaxis_equal
+            and yaxis_equal
+            and self.vertical == other.vertical
+            and self.markings == other.markings
+        )
 
     def _init_axis_range(
         self,
