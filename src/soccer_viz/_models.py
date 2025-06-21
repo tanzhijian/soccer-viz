@@ -130,8 +130,10 @@ class PitchCoordinates:
         raise ValueError(f"Invalid side: {side}. Choose 'left', 'right', or 'both'.")
 
     def _set_scale(self) -> tuple[float, float]:
-        standard_length = 105
-        standard_width = 68
+        standard_length = 105.
+        standard_width = 68.
+        if self.side != "both":
+            standard_length /= 2
         if self.vertical:
             standard_length, standard_width = standard_width, standard_length
         return self.length / standard_length, self.width / standard_width
