@@ -1,3 +1,5 @@
+from typing import Literal
+
 import pytest
 
 from soccer_viz._models import PitchCoordinates, PitchMarkings
@@ -26,6 +28,7 @@ def test_pitch_markings_vertical_change_scale() -> None:
     markings.change_scale(xaxis_scale=1.5, yaxis_scale=2, vertical=True)
     assert scale_100(markings.center_circle_radius) == scale_100(9.15 * 1.5)
     assert scale_100(markings.penalty_area_length) == scale_100(16.5 * 2)
+
 
 def test_pitch_markings_equality() -> None:
     markings1 = PitchMarkings(center_circle_radius=0.1 + 0.2)
@@ -352,3 +355,26 @@ class TestVerticalCoordinates:
     def test_right_goal(self, coordinates: PitchCoordinates) -> None:
         right_goal = coordinates.right_goal()
         assert scale_100(right_goal["y1"]) == scale_100(105 + 2.44)
+
+
+@pytest.mark.parametrize(
+    "side, vertical, result",
+    [
+        ("left", False, (0, 52.5)),
+        ("right", False, (52.5, 105)),
+        ("left", True, (0, 52.5)),
+        ("right", True, (52.5, 105)),
+    ],
+)
+def test_side_coordinates(
+    side: Literal["left", "right"],
+    vertical: bool,
+    result: tuple[float, float],
+) -> None:
+    coordinates = PitchCoordinates(vertical=vertical, side=side)
+    if not vertical:
+        assert scale_100(coordinates.xaxis_start) == scale_100(result[0])
+        assert scale_100(coordinates.xaxis_end) == scale_100(result[1])
+    else:
+        assert scale_100(coordinates.yaxis_start) == scale_100(result[0])
+        assert scale_100(coordinates.yaxis_end) == scale_100(result[1])

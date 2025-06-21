@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from math import isclose
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 
 class Colors:
@@ -63,17 +63,24 @@ class PitchCoordinates:
         yaxis_range: tuple[float, float] | None = None,
         markings: PitchMarkings | None = None,
         vertical: bool = False,
+        side: Literal["left", "right", "both"] = "both",
         lock_markings: bool = True,
     ) -> None:
         self.vertical = vertical
-        self.xaxis_range = self._init_axis_range(xaxis_range, vertical, is_x=True)
-        self.yaxis_range = self._init_axis_range(yaxis_range, vertical, is_x=False)
+        self.side = side
+        self.xaxis_range = self._set_axis_range(xaxis_range, vertical, is_x=True)
+        self.yaxis_range = self._set_axis_range(yaxis_range, vertical, is_x=False)
+        if side != "both":
+            if vertical:
+                self.yaxis_range = self._set_side(side, self.yaxis_range)
+            else:
+                self.xaxis_range = self._set_side(side, self.xaxis_range)
         self.xaxis_start, self.xaxis_end = self.xaxis_range
         self.yaxis_start, self.yaxis_end = self.yaxis_range
         self.length = abs(self.xaxis_end - self.xaxis_start)
         self.width = abs(self.yaxis_end - self.yaxis_start)
 
-        self.xaxis_scale, self.yaxis_scale = self._init_scale()
+        self.xaxis_scale, self.yaxis_scale = self._set_scale()
         self.markings = markings if markings is not None else PitchMarkings()
         if not lock_markings:
             self.markings.change_scale(self.xaxis_scale, self.yaxis_scale, vertical)
@@ -94,7 +101,7 @@ class PitchCoordinates:
             and self.markings == other.markings
         )
 
-    def _init_axis_range(
+    def _set_axis_range(
         self,
         axis_range: tuple[float, float] | None,
         vertical: bool,
@@ -109,7 +116,20 @@ class PitchCoordinates:
             width = 105 if vertical else 68
             return (0.0, width)
 
-    def _init_scale(self) -> tuple[float, float]:
+    def _set_side(
+        self,
+        side: str,
+        axis: tuple[float, float],
+    ) -> tuple[float, float]:
+        if side == "both":
+            return axis
+        if side == "left":
+            return (axis[0], axis[0] + (axis[1] - axis[0]) / 2)
+        if side == "right":
+            return (axis[0] + (axis[1] - axis[0]) / 2, axis[1])
+        raise ValueError(f"Invalid side: {side}. Choose 'left', 'right', or 'both'.")
+
+    def _set_scale(self) -> tuple[float, float]:
         standard_length = 105
         standard_width = 68
         if self.vertical:

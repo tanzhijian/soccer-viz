@@ -8,13 +8,13 @@ class Pitch:
         self,
         coordinates: PitchCoordinates | None = None,
     ) -> None:
-        self.fig = go.Figure()
         self.coordinates = (
             coordinates if coordinates is not None else PitchCoordinates()
         )
+        self.fig = go.Figure()
         self._draw_pitch()
 
-    def _draw_pitch(self) -> None:
+    def _draw_background(self) -> None:
         self.fig.add_shape(
             type="rect",
             layer="below",
@@ -22,6 +22,8 @@ class Pitch:
             line_color=Colors.dark_gray,
             fillcolor=Colors.light_gray,
         )
+        
+    def _draw_centre(self) -> None:
         self.fig.add_shape(
             type="circle",
             layer="below",
@@ -42,6 +44,8 @@ class Pitch:
             **self.coordinates.halfway_line(),
             line_color=Colors.dark_gray,
         )
+
+    def _draw_left_side(self) -> None:
         self.fig.add_shape(
             type="circle",
             layer="below",
@@ -77,6 +81,8 @@ class Pitch:
             line_color=Colors.dark_gray,
             fillcolor=Colors.light_gray,
         )
+
+    def _draw_right_side(self) -> None:
         self.fig.add_shape(
             type="circle",
             layer="below",
@@ -112,6 +118,15 @@ class Pitch:
             line_color=Colors.dark_gray,
             fillcolor=Colors.light_gray,
         )
+
+    def _draw_pitch(self) -> None:
+        self._draw_background()
+        if self.coordinates.side in ("left", "both"):
+            self._draw_left_side()
+        if self.coordinates.side in ("right", "both"):
+            self._draw_right_side()
+        if self.coordinates.side == "both":
+            self._draw_centre()
 
     def add_point(
         self,
