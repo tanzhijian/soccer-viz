@@ -22,7 +22,7 @@ class Pitch:
             line_color=Colors.dark_gray,
             fillcolor=Colors.light_gray,
         )
-        
+
     def _draw_centre(self) -> None:
         self.fig.add_shape(
             type="circle",
@@ -160,6 +160,29 @@ class Pitch:
                 y=[start_y, end_y],
                 mode="lines",
                 line=dict(color=color, width=2),
+            )
+        )
+
+    def add_triangle(
+        self,
+        a_x: float,
+        a_y: float,
+        b_x: float,
+        b_y: float,
+        c_x: float,
+        c_y: float,
+        color: str = Colors.red,
+        opacity: float = 1,
+    ) -> None:
+        self.fig.add_trace(
+            go.Scatter(
+                x=[a_x, b_x, c_x, a_x],
+                y=[a_y, b_y, c_y, a_y],
+                mode="lines",
+                fill="toself",
+                fillcolor=color,
+                line=dict(color=color, width=2),
+                opacity=opacity,
             )
         )
 
