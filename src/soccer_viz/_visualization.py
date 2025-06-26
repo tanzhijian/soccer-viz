@@ -130,21 +130,39 @@ class Pitch:
 
     def add_point(
         self,
+        *,
         x: float,
         y: float,
-        text: str,
+        size: int = 20,
+        text: str | None = None,
+        shirt_number: int | None = None,
         color: str = Colors.red,
+        opacity: float = 1.0,
     ) -> None:
         self.fig.add_trace(
             go.Scatter(
                 x=[x],
                 y=[y],
                 mode="markers+text",
-                marker=dict(size=10, color=color),
-                text=text,
-                textposition="top center",
+                marker={'size': size, 'color': color},
+                text=text if text is not None else "",
+                textposition='top center',
+                textfont={'color': Colors.black},
+                opacity=opacity,
             )
         )
+        if shirt_number is not None:
+            self.fig.add_trace(
+                go.Scatter(
+                    x=[x],
+                    y=[y],
+                    mode="text",
+                    text=str(shirt_number),
+                    textposition="middle center",
+                    textfont={'color': Colors.white},
+                    showlegend=False,
+                )
+            )
 
     def add_line(
         self,
@@ -193,8 +211,8 @@ class Pitch:
         return (a + 5, b - 5)
 
     def show(self) -> None:
-        fig_width = 800
-        fig_height = 600
+        fig_width = 1024
+        fig_height = 768
         if self.coordinates.vertical:
             fig_width, fig_height = fig_height, fig_width
 

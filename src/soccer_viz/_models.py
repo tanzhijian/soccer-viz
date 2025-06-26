@@ -4,6 +4,8 @@ from typing import Literal, TypedDict
 
 
 class Colors:
+    white = "#ffffff",
+    black = "#000000",
     light_gray = "#f8f9fa"
     dark_gray = "#dee2e6"
     red = "#dc3545"
