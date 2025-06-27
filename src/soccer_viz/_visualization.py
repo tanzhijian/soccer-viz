@@ -176,16 +176,64 @@ class Pitch:
         color: str = Colors.green,
         width: float = 2,
         opacity: float = 1.0,
+        dash: Literal["solid", "dot", "dash", "longdash", "dashdot"] = "solid",
+        gradient: bool = False,
     ) -> None:
-        self.fig.add_trace(
-            go.Scatter(
-                x=[start_x, end_x],
-                y=[start_y, end_y],
-                mode="lines",
-                line=dict(color=color, width=width),
-                opacity=opacity,
+        if not gradient:
+            self.fig.add_trace(
+                go.Scatter(
+                    x=[start_x, end_x],
+                    y=[start_y, end_y],
+                    mode="lines",
+                    line=dict(color=color, width=width, dash=dash),
+                    opacity=opacity,
+                )
             )
-        )
+        else:
+            self.add_gradient_line(
+                start_x=start_x,
+                start_y=start_y,
+                end_x=end_x,
+                end_y=end_y,
+                color=color,
+                width_start=width / 4,
+                width_end=width,
+                opacity_start=opacity * 0.1,
+                opacity_end=opacity,
+            )
+
+    def add_gradient_line(
+        self,
+        start_x: float,
+        start_y: float,
+        end_x: float,
+        end_y: float,
+        color: str = Colors.green,
+        width_start: float = 1,
+        width_end: float = 4,
+        opacity_start: float = 0.1,
+        opacity_end: float = 1.0,
+        steps: int = 20,
+    ) -> None:
+        for i in range(steps):
+            t0 = i / steps
+            t1 = (i + 1) / steps
+            x0 = start_x + (end_x - start_x) * t0
+            y0 = start_y + (end_y - start_y) * t0
+            x1 = start_x + (end_x - start_x) * t1
+            y1 = start_y + (end_y - start_y) * t1
+            width = width_start + (width_end - width_start) * t0
+            opacity = opacity_start + (opacity_end - opacity_start) * t0
+            self.fig.add_trace(
+                go.Scatter(
+                    x=[x0, x1],
+                    y=[y0, y1],
+                    mode="lines",
+                    line=dict(color=color, width=width),
+                    opacity=opacity,
+                    showlegend=False,
+                )
+            )
 
     def add_annotation(
         self,
