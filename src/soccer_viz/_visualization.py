@@ -171,14 +171,43 @@ class Pitch:
         end_x: float,
         end_y: float,
         color: str = Colors.green,
+        width: float = 2,
+        opacity: float = 1.0,
     ) -> None:
         self.fig.add_trace(
             go.Scatter(
                 x=[start_x, end_x],
                 y=[start_y, end_y],
                 mode="lines",
-                line=dict(color=color, width=2),
+                line=dict(color=color, width=width),
+                opacity=opacity,
             )
+        )
+
+    def add_annotation(
+        self,
+        start_x: float,
+        start_y: float,
+        end_x: float,
+        end_y: float,
+        color: str = Colors.green,
+        width: float = 2,
+        opacity: float = 1.0,
+    ) -> None:
+        self.fig.add_annotation(
+            ax=start_x,
+            ay=start_y,
+            x=end_x,
+            y=end_y,
+            xref="x",
+            yref="y",
+            axref="x",
+            ayref="y",
+            arrowhead=2,
+            arrowsize=1,
+            arrowwidth=width,
+            arrowcolor=color,
+            opacity=opacity,
         )
 
     def add_triangle(
