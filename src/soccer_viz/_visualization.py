@@ -1,3 +1,5 @@
+from typing import Literal
+
 import plotly.graph_objects as go
 
 from ._models import Colors, PitchCoordinates
@@ -135,31 +137,32 @@ class Pitch:
         y: float,
         size: int = 20,
         text: str | None = None,
-        shirt_number: int | None = None,
+        number: int | None = None,
         color: str = Colors.red,
         opacity: float = 1.0,
+        symbol: Literal["circle", "square", "triangle-up"] = "circle",
     ) -> None:
         self.fig.add_trace(
             go.Scatter(
                 x=[x],
                 y=[y],
                 mode="markers+text",
-                marker={'size': size, 'color': color},
+                marker={"size": size, "color": color, "symbol": symbol},
                 text=text if text is not None else "",
-                textposition='top center',
-                textfont={'color': Colors.black},
+                textposition="top center",
+                textfont={"color": Colors.black},
                 opacity=opacity,
             )
         )
-        if shirt_number is not None:
+        if number is not None:
             self.fig.add_trace(
                 go.Scatter(
                     x=[x],
                     y=[y],
                     mode="text",
-                    text=str(shirt_number),
+                    text=str(number),
                     textposition="middle center",
-                    textfont={'color': Colors.white},
+                    textfont={"color": Colors.white},
                     showlegend=False,
                 )
             )
