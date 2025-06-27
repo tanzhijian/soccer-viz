@@ -3,17 +3,6 @@ from math import isclose
 from typing import Literal, TypedDict
 
 
-class Colors:
-    white = "#ffffff",
-    black = "#000000",
-    light_gray = "#f8f9fa"
-    dark_gray = "#dee2e6"
-    red = "#dc3545"
-    blue = "#0d6efd"
-    green = "#198754"
-    transparent = "rgba(0, 0, 0, 0)"
-
-
 class Area(TypedDict):
     x0: float
     y0: float
@@ -132,8 +121,8 @@ class PitchCoordinates:
         raise ValueError(f"Invalid side: {side}. Choose 'left', 'right', or 'both'.")
 
     def _set_scale(self) -> tuple[float, float]:
-        standard_length = 105.
-        standard_width = 68.
+        standard_length = 105.0
+        standard_width = 68.0
         if self.side != "both":
             standard_length /= 2
         if self.vertical:

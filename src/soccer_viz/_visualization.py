@@ -2,7 +2,18 @@ from typing import Literal
 
 import plotly.graph_objects as go
 
-from ._models import Colors, PitchCoordinates
+from ._models import PitchCoordinates
+
+
+class Colors:
+    white = "#ffffff",
+    black = "#000000",
+    light_gray = "#f8f9fa"
+    dark_gray = "#dee2e6"
+    red = "#dc3545"
+    blue = "#0d6efd"
+    green = "#198754"
+    transparent = "rgba(0, 0, 0, 0)"
 
 
 class Pitch:
@@ -132,9 +143,9 @@ class Pitch:
 
     def add_point(
         self,
-        *,
         x: float,
         y: float,
+        *,
         size: int = 20,
         text: str | None = None,
         number: int | None = None,
@@ -173,6 +184,7 @@ class Pitch:
         start_y: float,
         end_x: float,
         end_y: float,
+        *,
         color: str = Colors.green,
         width: float = 2,
         opacity: float = 1.0,
@@ -208,6 +220,7 @@ class Pitch:
         start_y: float,
         end_x: float,
         end_y: float,
+        *,
         color: str = Colors.green,
         width_start: float = 1,
         width_end: float = 4,
@@ -241,6 +254,7 @@ class Pitch:
         start_y: float,
         end_x: float,
         end_y: float,
+        *,
         color: str = Colors.green,
         width: float = 2,
         opacity: float = 1.0,
@@ -269,6 +283,7 @@ class Pitch:
         b_y: float,
         c_x: float,
         c_y: float,
+        *,
         color: str = Colors.red,
         opacity: float = 1,
     ) -> None:
