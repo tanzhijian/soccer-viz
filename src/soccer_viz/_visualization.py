@@ -5,25 +5,92 @@ import plotly.graph_objects as go
 from ._models import PitchCoordinates
 
 
-class Colors:
-    white = "#ffffff",
-    black = "#000000",
-    light_gray = "#f8f9fa"
-    dark_gray = "#dee2e6"
-    red = "#dc3545"
-    blue = "#0d6efd"
-    green = "#198754"
+class Theme:
+    @property
+    def background(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def text(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def border(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def line(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def home_team(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def away_team(self) -> str:
+        raise NotImplementedError
+
+    @property
+    def number(self) -> str:
+        raise NotImplementedError
+
+
+class DefaultTheme(Theme):
+    """https://getbootstrap.com/docs/5.3/customize/color/"""
+
+    white = "#ffffff"
+    black = "#000000"
+    gray_100 = "#f8f9fa"
+    gray_300 = "#dee2e6"
+    gray_500 = "#adb5bd"
+    gray_900 = "#212529"
+    red_500 = "#dc3545"
+    blue_500 = "#0d6efd"
+    green_500 = "#198754"
     transparent = "rgba(0, 0, 0, 0)"
+
+    def __init__(self, name: Literal["light", "dark"] = "light") -> None:
+        self.name = name
+
+    @property
+    def background(self) -> str:
+        return self.gray_100 if self.name == "light" else self.gray_900
+
+    @property
+    def text(self) -> str:
+        return self.black if self.name == "light" else self.white
+
+    @property
+    def border(self) -> str:
+        return self.gray_300
+
+    @property
+    def line(self) -> str:
+        return self.gray_500
+
+    @property
+    def home_team(self) -> str:
+        return self.red_500
+
+    @property
+    def away_team(self) -> str:
+        return self.blue_500
+
+    @property
+    def number(self) -> str:
+        return self.white
 
 
 class Pitch:
     def __init__(
         self,
         coordinates: PitchCoordinates | None = None,
+        theme: Theme | None = None,
     ) -> None:
         self.coordinates = (
             coordinates if coordinates is not None else PitchCoordinates()
         )
+        self.theme = theme if theme is not None else DefaultTheme()
         self.fig = go.Figure()
         self._draw_pitch()
 
@@ -32,8 +99,8 @@ class Pitch:
             type="rect",
             layer="below",
             **self.coordinates.pitch_area(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
 
     def _draw_centre(self) -> None:
@@ -41,21 +108,21 @@ class Pitch:
             type="circle",
             layer="below",
             **self.coordinates.centre_circle(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="circle",
             layer="below",
             **self.coordinates.centre_mark(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="line",
             layer="below",
             **self.coordinates.halfway_line(),
-            line_color=Colors.dark_gray,
+            line_color=self.theme.border,
         )
 
     def _draw_left_side(self) -> None:
@@ -63,36 +130,36 @@ class Pitch:
             type="circle",
             layer="below",
             **self.coordinates.left_penalty_arc(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="rect",
             layer="below",
             **self.coordinates.left_penalty_area(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="circle",
             layer="below",
             **self.coordinates.left_penalty_mark(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="rect",
             layer="below",
             **self.coordinates.left_goal_area(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="rect",
             layer="below",
             **self.coordinates.left_goal(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
 
     def _draw_right_side(self) -> None:
@@ -100,36 +167,36 @@ class Pitch:
             type="circle",
             layer="below",
             **self.coordinates.right_penalty_arc(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="rect",
             layer="below",
             **self.coordinates.right_penalty_area(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="circle",
             layer="below",
             **self.coordinates.right_penalty_mark(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="rect",
             layer="below",
             **self.coordinates.right_goal_area(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
         self.fig.add_shape(
             type="rect",
             layer="below",
             **self.coordinates.right_goal(),
-            line_color=Colors.dark_gray,
-            fillcolor=Colors.light_gray,
+            line_color=self.theme.border,
+            fillcolor=self.theme.background,
         )
 
     def _draw_pitch(self) -> None:
@@ -149,10 +216,12 @@ class Pitch:
         size: int = 20,
         text: str | None = None,
         number: int | None = None,
-        color: str = Colors.red,
+        color: str | None = None,
         opacity: float = 1.0,
         symbol: Literal["circle", "square", "triangle-up"] = "circle",
     ) -> None:
+        if color is None:
+            color = self.theme.home_team
         self.fig.add_trace(
             go.Scatter(
                 x=[x],
@@ -161,7 +230,7 @@ class Pitch:
                 marker={"size": size, "color": color, "symbol": symbol},
                 text=text if text is not None else "",
                 textposition="top center",
-                textfont={"color": Colors.black},
+                textfont={"color": self.theme.text},
                 opacity=opacity,
             )
         )
@@ -173,7 +242,7 @@ class Pitch:
                     mode="text",
                     text=str(number),
                     textposition="middle center",
-                    textfont={"color": Colors.white},
+                    textfont={"color": self.theme.number},
                     showlegend=False,
                 )
             )
@@ -185,12 +254,14 @@ class Pitch:
         end_x: float,
         end_y: float,
         *,
-        color: str = Colors.green,
+        color: str | None = None,
         width: float = 2,
         opacity: float = 1.0,
         dash: Literal["solid", "dot", "dash", "longdash", "dashdot"] = "solid",
         gradient: bool = False,
     ) -> None:
+        if color is None:
+            color = self.theme.line
         if not gradient:
             self.fig.add_trace(
                 go.Scatter(
@@ -221,13 +292,16 @@ class Pitch:
         end_x: float,
         end_y: float,
         *,
-        color: str = Colors.green,
+        color: str | None = None,
         width_start: float = 1,
         width_end: float = 4,
         opacity_start: float = 0.1,
         opacity_end: float = 1.0,
         steps: int = 20,
     ) -> None:
+        if color is None:
+            color = self.theme.line
+
         for i in range(steps):
             t0 = i / steps
             t1 = (i + 1) / steps
@@ -255,10 +329,13 @@ class Pitch:
         end_x: float,
         end_y: float,
         *,
-        color: str = Colors.green,
+        color: str | None = None,
         width: float = 2,
         opacity: float = 1.0,
     ) -> None:
+        if color is None:
+            color = self.theme.line
+
         self.fig.add_annotation(
             ax=start_x,
             ay=start_y,
@@ -284,9 +361,11 @@ class Pitch:
         c_x: float,
         c_y: float,
         *,
-        color: str = Colors.red,
+        color: str | None = None,
         opacity: float = 1,
     ) -> None:
+        if color is None:
+            color = self.theme.line
         self.fig.add_trace(
             go.Scatter(
                 x=[a_x, b_x, c_x, a_x],
