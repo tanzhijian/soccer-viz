@@ -378,7 +378,9 @@ class Pitch:
             )
         )
 
-    def _calc_axis_range(self, axis_range: tuple[float, float]) -> tuple[float, float]:
+    def _calc_axis_range(
+        self, axis_range: tuple[float, float]
+    ) -> tuple[float, float]:
         a, b = axis_range
         if a < b:
             return (a - 5, b + 5)

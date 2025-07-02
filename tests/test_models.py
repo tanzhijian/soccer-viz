@@ -64,9 +64,9 @@ class TestStandardCoordinates:
     def test_centre_circle(self, coordinates: PitchCoordinates) -> None:
         centre_circle = coordinates.centre_circle()
         assert scale_100(centre_circle["x0"]) == scale_100((52.5 - 9.15))
-        assert scale_100(abs(centre_circle["x1"] - centre_circle["x0"])) == scale_100(
-            9.15 * 2
-        )
+        assert scale_100(
+            abs(centre_circle["x1"] - centre_circle["x0"])
+        ) == scale_100(9.15 * 2)
 
     def test_centre_mark(self, coordinates: PitchCoordinates) -> None:
         centre_mark = coordinates.centre_mark()
@@ -88,9 +88,9 @@ class TestStandardCoordinates:
         assert scale_100(
             (left_penalty_area["x1"] - left_penalty_area["x0"])
         ) == scale_100(16.5)
-        assert round((left_penalty_area["y1"] - left_penalty_area["y0"])) == round(
-            (16.5 * 2 + 7.32)
-        )
+        assert round(
+            (left_penalty_area["y1"] - left_penalty_area["y0"])
+        ) == round((16.5 * 2 + 7.32))
 
     def test_left_penalty_mark(self, coordinates: PitchCoordinates) -> None:
         left_penalty_mark = coordinates.left_penalty_mark()
@@ -100,10 +100,12 @@ class TestStandardCoordinates:
     def test_left_goal_area(self, coordinates: PitchCoordinates) -> None:
         left_goal_area = coordinates.left_goal_area()
         assert int(left_goal_area["x0"]) == 0
-        assert scale_100(left_goal_area["x1"] - left_goal_area["x0"]) == scale_100(5.5)
-        assert scale_100(left_goal_area["y1"] - left_goal_area["y0"]) == scale_100(
-            7.32 + 5.5 * 2
-        )
+        assert scale_100(
+            left_goal_area["x1"] - left_goal_area["x0"]
+        ) == scale_100(5.5)
+        assert scale_100(
+            left_goal_area["y1"] - left_goal_area["y0"]
+        ) == scale_100(7.32 + 5.5 * 2)
 
     def test_left_goal(self, coordinates: PitchCoordinates) -> None:
         left_goal = coordinates.left_goal()
@@ -131,12 +133,12 @@ class TestStandardCoordinates:
     def test_right_goal_area(self, coordinates: PitchCoordinates) -> None:
         right_goal_area = coordinates.right_goal_area()
         assert scale_100(right_goal_area["x1"]) == scale_100(105 - 5.5)
-        assert scale_100(right_goal_area["x0"] - right_goal_area["x1"]) == scale_100(
-            5.5
-        )
-        assert scale_100(right_goal_area["y1"] - right_goal_area["y0"]) == scale_100(
-            7.32 + 5.5 * 2
-        )
+        assert scale_100(
+            right_goal_area["x0"] - right_goal_area["x1"]
+        ) == scale_100(5.5)
+        assert scale_100(
+            right_goal_area["y1"] - right_goal_area["y0"]
+        ) == scale_100(7.32 + 5.5 * 2)
 
     def test_right_goal(self, coordinates: PitchCoordinates) -> None:
         right_goal = coordinates.right_goal()
@@ -178,9 +180,9 @@ class TestCustomCoordinates:
     def test_centre_circle(self, coordinates: PitchCoordinates) -> None:
         centre_circle = coordinates.centre_circle()
         assert scale_100(centre_circle["x0"]) == scale_100(-10)
-        assert abs(scale_100(centre_circle["x1"] - centre_circle["x0"])) == scale_100(
-            20
-        )
+        assert abs(
+            scale_100(centre_circle["x1"] - centre_circle["x0"])
+        ) == scale_100(20)
 
     def test_centre_mark(self, coordinates: PitchCoordinates) -> None:
         centre_mark = coordinates.centre_mark()
@@ -214,10 +216,12 @@ class TestCustomCoordinates:
     def test_left_goal_area(self, coordinates: PitchCoordinates) -> None:
         left_goal_area = coordinates.left_goal_area()
         assert int(left_goal_area["x0"]) == -60
-        assert scale_100(left_goal_area["x1"] - left_goal_area["x0"]) == scale_100(6)
-        assert scale_100(abs(left_goal_area["y1"] - left_goal_area["y0"])) == scale_100(
-            8 + 6 * 2
-        )
+        assert scale_100(
+            left_goal_area["x1"] - left_goal_area["x0"]
+        ) == scale_100(6)
+        assert scale_100(
+            abs(left_goal_area["y1"] - left_goal_area["y0"])
+        ) == scale_100(8 + 6 * 2)
 
     def test_left_goal(self, coordinates: PitchCoordinates) -> None:
         left_goal = coordinates.left_goal()
@@ -245,7 +249,9 @@ class TestCustomCoordinates:
     def test_right_goal_area(self, coordinates: PitchCoordinates) -> None:
         right_goal_area = coordinates.right_goal_area()
         assert scale_100(right_goal_area["x1"]) == scale_100(60 - 6)
-        assert scale_100(right_goal_area["x0"] - right_goal_area["x1"]) == scale_100(6)
+        assert scale_100(
+            right_goal_area["x0"] - right_goal_area["x1"]
+        ) == scale_100(6)
         assert scale_100(
             abs(right_goal_area["y1"] - right_goal_area["y0"])
         ) == scale_100(8 + 6 * 2)
@@ -278,9 +284,9 @@ class TestVerticalCoordinates:
     def test_centre_circle(self, coordinates: PitchCoordinates) -> None:
         centre_circle = coordinates.centre_circle()
         assert scale_100(centre_circle["x0"]) == scale_100((34 - 9.15))
-        assert scale_100(abs(centre_circle["x1"] - centre_circle["x0"])) == scale_100(
-            9.15 * 2
-        )
+        assert scale_100(
+            abs(centre_circle["x1"] - centre_circle["x0"])
+        ) == scale_100(9.15 * 2)
 
     def test_centre_mark(self, coordinates: PitchCoordinates) -> None:
         centre_mark = coordinates.centre_mark()
@@ -314,10 +320,12 @@ class TestVerticalCoordinates:
     def test_left_goal_area(self, coordinates: PitchCoordinates) -> None:
         left_goal_area = coordinates.left_goal_area()
         assert int(left_goal_area["y0"]) == 0
-        assert scale_100(left_goal_area["x1"] - left_goal_area["x0"]) == scale_100(
-            7.32 + 5.5 * 2
-        )
-        assert scale_100(left_goal_area["y1"] - left_goal_area["y0"]) == scale_100(5.5)
+        assert scale_100(
+            left_goal_area["x1"] - left_goal_area["x0"]
+        ) == scale_100(7.32 + 5.5 * 2)
+        assert scale_100(
+            left_goal_area["y1"] - left_goal_area["y0"]
+        ) == scale_100(5.5)
 
     def test_left_goal(self, coordinates: PitchCoordinates) -> None:
         left_goal = coordinates.left_goal()
