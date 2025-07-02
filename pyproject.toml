@@ -6,7 +6,7 @@ authors = [
     { name = "tanzhijian", email = "tanzhijianorg@outlook.com" }
 ]
 dependencies = [
-    "plotly==6.0.1",
+    "plotly>=6.2.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -18,9 +18,9 @@ build-backend = "hatchling.build"
 [tool.rye]
 managed = true
 dev-dependencies = [
-    "ruff>=0.11.10",
-    "mypy>=1.15.0",
-    "pytest>=8.3.5",
+    "ruff>=0.12.1",
+    "mypy>=1.16.1",
+    "pytest>=8.4.1",
     "ipykernel>=6.29.5",
     "nbformat>=5.10.4",
     "anywidget>=0.9.18",

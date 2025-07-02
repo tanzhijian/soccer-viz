@@ -56,10 +56,10 @@ jupyterlab-widgets==3.0.15
 matplotlib-inline==0.1.7
     # via ipykernel
     # via ipython
-mypy==1.15.0
+mypy==1.16.1
 mypy-extensions==1.1.0
     # via mypy
-narwhals==1.40.0
+narwhals==1.45.0
     # via plotly
 nbformat==5.10.4
 nest-asyncio==1.6.0
@@ -70,11 +70,13 @@ packaging==25.0
     # via pytest
 parso==0.8.4
     # via jedi
+pathspec==0.12.1
+    # via mypy
 pexpect==4.9.0
     # via ipython
 platformdirs==4.3.8
     # via jupyter-core
-plotly==6.0.1
+plotly==6.2.0
     # via soccer-viz
 pluggy==1.6.0
     # via pytest
@@ -91,7 +93,8 @@ pure-eval==0.2.3
 pygments==2.19.1
     # via ipython
     # via ipython-pygments-lexers
-pytest==8.3.5
+    # via pytest
+pytest==8.4.1
 python-dateutil==2.9.0.post0
     # via jupyter-client
 pyzmq==26.4.0
@@ -103,7 +106,7 @@ referencing==0.36.2
 rpds-py==0.25.0
     # via jsonschema
     # via referencing
-ruff==0.11.10
+ruff==0.12.1
 six==1.17.0
     # via python-dateutil
 stack-data==0.6.3
