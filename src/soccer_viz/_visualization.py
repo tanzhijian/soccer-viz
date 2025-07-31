@@ -2,10 +2,12 @@ from typing import Literal
 
 import plotly.graph_objects as go
 
-from ._models import PitchCoordinates
+from ._models import PitchCoordinates, PitchMarkings
 
 
 class Theme:
+    transparent = "rgba(0, 0, 0, 0)"
+
     @property
     def background(self) -> str:
         raise NotImplementedError
@@ -47,7 +49,6 @@ class DefaultTheme(Theme):
     red_500 = "#dc3545"
     blue_500 = "#0d6efd"
     green_500 = "#198754"
-    transparent = "rgba(0, 0, 0, 0)"
 
     def __init__(self, name: Literal["light", "dark"] = "light") -> None:
         self.name = name
@@ -84,15 +85,42 @@ class DefaultTheme(Theme):
 class Pitch:
     def __init__(
         self,
-        coordinates: PitchCoordinates | None = None,
+        xaxis_range: tuple[float, float] | None = None,
+        yaxis_range: tuple[float, float] | None = None,
+        markings: PitchMarkings | None = None,
+        vertical: bool = False,
         theme: Theme | None = None,
+        side: Literal["left", "right", "both"] = "both",
     ) -> None:
-        self.coordinates = (
-            coordinates if coordinates is not None else PitchCoordinates()
+        self.coordinates = PitchCoordinates(
+            markings=markings, vertical=vertical
+        )
+        self._xaxis_range, self._yaxis_range = self._set_axis_ranges(
+            xaxis_range, yaxis_range
         )
         self.theme = theme if theme is not None else DefaultTheme()
+        self._side = side
         self.fig = go.Figure()
         self._draw_pitch()
+
+    @property
+    def xaxis_range(self) -> tuple[float, float]:
+        return self._xaxis_range
+
+    @property
+    def yaxis_range(self) -> tuple[float, float]:
+        return self._yaxis_range
+
+    def _set_axis_ranges(
+        self,
+        xaxis_range: tuple[float, float] | None = None,
+        yaxis_range: tuple[float, float] | None = None,
+    ) -> tuple[tuple[float, float], tuple[float, float]]:
+        if xaxis_range is None:
+            xaxis_range = self.coordinates.xaxis_range
+        if yaxis_range is None:
+            yaxis_range = self.coordinates.yaxis_range
+        return xaxis_range, yaxis_range
 
     def _draw_background(self) -> None:
         self.fig.add_shape(
@@ -101,6 +129,8 @@ class Pitch:
             **self.coordinates.pitch_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
 
     def _draw_centre(self) -> None:
@@ -110,6 +140,8 @@ class Pitch:
             **self.coordinates.centre_circle(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="circle",
@@ -117,12 +149,16 @@ class Pitch:
             **self.coordinates.centre_mark(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="line",
             layer="below",
             **self.coordinates.halfway_line(),
             line_color=self.theme.border,
+            xref="x",
+            yref="y",
         )
 
     def _draw_left_side(self) -> None:
@@ -132,6 +168,8 @@ class Pitch:
             **self.coordinates.left_penalty_arc(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="rect",
@@ -139,6 +177,8 @@ class Pitch:
             **self.coordinates.left_penalty_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="circle",
@@ -146,6 +186,8 @@ class Pitch:
             **self.coordinates.left_penalty_mark(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="rect",
@@ -153,6 +195,8 @@ class Pitch:
             **self.coordinates.left_goal_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="rect",
@@ -160,6 +204,8 @@ class Pitch:
             **self.coordinates.left_goal(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
 
     def _draw_right_side(self) -> None:
@@ -169,6 +215,8 @@ class Pitch:
             **self.coordinates.right_penalty_arc(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="rect",
@@ -176,6 +224,8 @@ class Pitch:
             **self.coordinates.right_penalty_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="circle",
@@ -183,6 +233,8 @@ class Pitch:
             **self.coordinates.right_penalty_mark(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="rect",
@@ -190,6 +242,8 @@ class Pitch:
             **self.coordinates.right_goal_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
         self.fig.add_shape(
             type="rect",
@@ -197,15 +251,17 @@ class Pitch:
             **self.coordinates.right_goal(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
+            xref="x",
+            yref="y",
         )
 
     def _draw_pitch(self) -> None:
         self._draw_background()
-        if self.coordinates.side in ("left", "both"):
+        if self._side in ("left", "both"):
             self._draw_left_side()
-        if self.coordinates.side in ("right", "both"):
+        if self._side in ("right", "both"):
             self._draw_right_side()
-        if self.coordinates.side == "both":
+        if self._side == "both":
             self._draw_centre()
 
     def add_point(
@@ -232,6 +288,8 @@ class Pitch:
                 textposition="top center",
                 textfont={"color": self.theme.text},
                 opacity=opacity,
+                xaxis="x2",
+                yaxis="y2",
             )
         )
         if number is not None:
@@ -244,6 +302,8 @@ class Pitch:
                     textposition="middle center",
                     textfont={"color": self.theme.number},
                     showlegend=False,
+                    xaxis="x2",
+                    yaxis="y2",
                 )
             )
 
@@ -270,6 +330,8 @@ class Pitch:
                     mode="lines",
                     line=dict(color=color, width=width, dash=dash),
                     opacity=opacity,
+                    xaxis="x2",
+                    yaxis="y2",
                 )
             )
         else:
@@ -319,6 +381,8 @@ class Pitch:
                     line=dict(color=color, width=width),
                     opacity=opacity,
                     showlegend=False,
+                    xaxis="x2",
+                    yaxis="y2",
                 )
             )
 
@@ -375,6 +439,8 @@ class Pitch:
                 fillcolor=color,
                 line=dict(color=color, width=2),
                 opacity=opacity,
+                xaxis="x2",
+                yaxis="y2",
             )
         )
 
@@ -395,11 +461,15 @@ class Pitch:
         self.fig.update_layout(
             width=fig_width,
             height=fig_height,
-            title=f"{self.coordinates.length}m * {self.coordinates.width}m",
+            title=(
+                f"{self.coordinates.markings.length}m * "
+                f"{self.coordinates.markings.width}m"
+            ),
             xaxis=dict(
                 range=self._calc_axis_range(self.coordinates.xaxis_range),
                 showgrid=False,
                 zeroline=False,
+                showticklabels=False,
             ),
             yaxis=dict(
                 range=self._calc_axis_range(self.coordinates.yaxis_range),
@@ -407,6 +477,20 @@ class Pitch:
                 zeroline=False,
                 scaleanchor="x",
                 scaleratio=1,
+                showticklabels=False,
+            ),
+            xaxis2=dict(
+                range=self._calc_axis_range(self.xaxis_range),
+                showgrid=False,
+                zeroline=False,
+                overlaying="x",
+            ),
+            yaxis2=dict(
+                range=self._calc_axis_range(self.yaxis_range),
+                showgrid=False,
+                zeroline=False,
+                overlaying="y",
             ),
         )
+
         self.fig.show()
