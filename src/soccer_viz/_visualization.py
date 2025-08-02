@@ -85,8 +85,9 @@ class DefaultTheme(Theme):
 class Pitch:
     def __init__(
         self,
-        xaxis_range: tuple[float, float] | None = None,
-        yaxis_range: tuple[float, float] | None = None,
+        *,
+        length_range: tuple[float, float] | None = None,
+        width_range: tuple[float, float] | None = None,
         markings: PitchMarkings | None = None,
         vertical: bool = False,
         theme: Theme | None = None,
@@ -96,12 +97,29 @@ class Pitch:
             markings=markings, vertical=vertical
         )
         self._xaxis_range, self._yaxis_range = self._set_axis_ranges(
-            xaxis_range, yaxis_range
+            length_range, width_range
         )
         self.theme = theme if theme is not None else DefaultTheme()
+        self._vertical = vertical
         self._side = side
         self.fig = go.Figure()
         self._draw_pitch()
+
+    @property
+    def _length(self) -> float:
+        if self._vertical:
+            return abs(self._yaxis_range[1] - self._yaxis_range[0])
+        return abs(self._xaxis_range[1] - self._xaxis_range[0])
+
+    @property
+    def _width(self) -> float:
+        if self._vertical:
+            return abs(self._xaxis_range[1] - self._xaxis_range[0])
+        return abs(self._yaxis_range[1] - self._yaxis_range[0])
+
+    @property
+    def _aspect_ratio(self) -> float:
+        return self._width / self._length
 
     @property
     def xaxis_range(self) -> tuple[float, float]:
@@ -113,9 +131,15 @@ class Pitch:
 
     def _set_axis_ranges(
         self,
-        xaxis_range: tuple[float, float] | None = None,
-        yaxis_range: tuple[float, float] | None = None,
+        length_range: tuple[float, float] | None = None,
+        width_range: tuple[float, float] | None = None,
+        vertical: bool = False,
     ) -> tuple[tuple[float, float], tuple[float, float]]:
+        xaxis_range = length_range
+        yaxis_range = width_range
+        if vertical:
+            xaxis_range = width_range
+            yaxis_range = length_range
         if xaxis_range is None:
             xaxis_range = self.coordinates.xaxis_range
         if yaxis_range is None:
@@ -490,6 +514,9 @@ class Pitch:
                 showgrid=False,
                 zeroline=False,
                 overlaying="y",
+                scaleanchor="x2",
+                scaleratio=self.coordinates.markings.aspect_ratio
+                / self._aspect_ratio,
             ),
         )
 

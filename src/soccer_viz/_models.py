@@ -56,6 +56,10 @@ class PitchMarkings:
     @property
     def width(self) -> float:
         return self._width if self._width is not None else Standard.WIDTH
+    
+    @property
+    def aspect_ratio(self) -> float:
+        return self.width / self.length
 
     @property
     def length_ratio(self) -> float:
