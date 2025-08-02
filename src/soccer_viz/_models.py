@@ -124,6 +124,22 @@ class PitchMarkings:
                 return Standard.MARK_RADIUS
             return self.length_ratio * Standard.MARK_RADIUS
         return self._mark_radius
+    
+    def __repr__(self) -> str:
+        return (
+            f"PitchMarkings("
+            f"length={self.length}, "
+            f"width={self.width}, "
+            f"center_circle_radius={self.center_circle_radius}, "
+            f"penalty_area_length={self.penalty_area_length}, "
+            f"penalty_mark_distance={self.penalty_mark_distance}, "
+            f"goal_area_length={self.goal_area_length}, "
+            f"corner_arc_radius={self.corner_arc_radius}, "
+            f"goal_width={self.goal_width}, "
+            f"goal_height={self.goal_height}, "
+            f"mark_radius={self.mark_radius}"
+            f")"
+        )
 
 
 class PitchCoordinates:
