@@ -467,33 +467,49 @@ class Pitch:
             )
         )
 
-    def show(self) -> None:
-        fig_width = 1024
-        fig_height = fig_width * self.coordinates.markings.aspect_ratio
+    def _extend_axis_range(
+        self, axis_range: tuple[float, float]
+    ) -> tuple[float, float]:
+        value = abs(axis_range[1] - axis_range[0]) * 0.05
+        a, b = axis_range
+        if a < b:
+            return (a - value, b + value)
+        return (a + value, b - value)
+
+    def show(
+        self,
+        fig_length: int | float = 1024,
+        fig_width: int | float | None = None,
+    ) -> None:
+        if fig_width is None:
+            fig_width = (
+                fig_length * self.coordinates.markings.aspect_ratio
+                + fig_length * 0.07
+            )
         if self.coordinates.vertical:
-            fig_width, fig_height = fig_height, fig_width
+            fig_length, fig_width = fig_width, fig_length
 
         axis: dict[str, Any] = dict(
             xaxis=dict(
-                range=self.coordinates.xaxis_range,
+                range=self._extend_axis_range(self.coordinates.xaxis_range),
                 showgrid=False,
                 zeroline=False,
                 showticklabels=False,
             ),
             yaxis=dict(
-                range=self.coordinates.yaxis_range,
+                range=self._extend_axis_range(self.coordinates.yaxis_range),
                 showgrid=False,
                 zeroline=False,
                 showticklabels=False,
             ),
             xaxis2=dict(
-                range=self.xaxis_range,
+                range=self._extend_axis_range(self.xaxis_range),
                 showgrid=False,
                 zeroline=False,
                 overlaying="x",
             ),
             yaxis2=dict(
-                range=self.yaxis_range,
+                range=self._extend_axis_range(self.yaxis_range),
                 showgrid=False,
                 zeroline=False,
                 overlaying="y",
@@ -517,8 +533,8 @@ class Pitch:
         self.fig.update_layout(
             **axis,
             paper_bgcolor=self.theme.background,
-            width=fig_width,
-            height=fig_height,
+            width=fig_length,
+            height=fig_width,
         )
 
         self.fig.show()
