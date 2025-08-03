@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 
 import plotly.graph_objects as go
 
@@ -97,7 +97,7 @@ class Pitch:
             markings=markings, vertical=vertical
         )
         self._xaxis_range, self._yaxis_range = self._set_axis_ranges(
-            length_range, width_range
+            length_range, width_range, vertical
         )
         self.theme = theme if theme is not None else DefaultTheme()
         self._vertical = vertical
@@ -135,11 +135,10 @@ class Pitch:
         width_range: tuple[float, float] | None = None,
         vertical: bool = False,
     ) -> tuple[tuple[float, float], tuple[float, float]]:
-        xaxis_range = length_range
-        yaxis_range = width_range
         if vertical:
-            xaxis_range = width_range
-            yaxis_range = length_range
+            xaxis_range, yaxis_range = width_range, length_range
+        else:
+            xaxis_range, yaxis_range = length_range, width_range
         if xaxis_range is None:
             xaxis_range = self.coordinates.xaxis_range
         if yaxis_range is None:
@@ -468,56 +467,58 @@ class Pitch:
             )
         )
 
-    def _calc_axis_range(
-        self, axis_range: tuple[float, float]
-    ) -> tuple[float, float]:
-        a, b = axis_range
-        if a < b:
-            return (a - 5, b + 5)
-        return (a + 5, b - 5)
-
     def show(self) -> None:
         fig_width = 1024
-        fig_height = 768
+        fig_height = fig_width * self.coordinates.markings.aspect_ratio
         if self.coordinates.vertical:
             fig_width, fig_height = fig_height, fig_width
 
-        self.fig.update_layout(
-            width=fig_width,
-            height=fig_height,
-            title=(
-                f"{self.coordinates.markings.length}m * "
-                f"{self.coordinates.markings.width}m"
-            ),
+        axis: dict[str, Any] = dict(
             xaxis=dict(
-                range=self._calc_axis_range(self.coordinates.xaxis_range),
+                range=self.coordinates.xaxis_range,
                 showgrid=False,
                 zeroline=False,
                 showticklabels=False,
             ),
             yaxis=dict(
-                range=self._calc_axis_range(self.coordinates.yaxis_range),
+                range=self.coordinates.yaxis_range,
                 showgrid=False,
                 zeroline=False,
-                scaleanchor="x",
-                scaleratio=1,
                 showticklabels=False,
             ),
             xaxis2=dict(
-                range=self._calc_axis_range(self.xaxis_range),
+                range=self.xaxis_range,
                 showgrid=False,
                 zeroline=False,
                 overlaying="x",
             ),
             yaxis2=dict(
-                range=self._calc_axis_range(self.yaxis_range),
+                range=self.yaxis_range,
                 showgrid=False,
                 zeroline=False,
                 overlaying="y",
-                scaleanchor="x2",
-                scaleratio=self.coordinates.markings.aspect_ratio
-                / self._aspect_ratio,
             ),
+        )
+        if self._vertical:
+            axis["xaxis"]["scaleanchor"] = "y"
+            axis["xaxis"]["scaleratio"] = 1
+            axis["xaxis2"]["scaleanchor"] = "y2"
+            axis["xaxis2"]["scaleratio"] = (
+                self.coordinates.markings.aspect_ratio / self._aspect_ratio
+            )
+        else:
+            axis["yaxis"]["scaleanchor"] = "x"
+            axis["yaxis"]["scaleratio"] = 1
+            axis["yaxis2"]["scaleanchor"] = "x2"
+            axis["yaxis2"]["scaleratio"] = (
+                self.coordinates.markings.aspect_ratio / self._aspect_ratio
+            )
+
+        self.fig.update_layout(
+            **axis,
+            paper_bgcolor=self.theme.background,
+            width=fig_width,
+            height=fig_height,
         )
 
         self.fig.show()
