@@ -1,9 +1,18 @@
+import pytest
+
 from soccer_viz import Pitch
 
 
 class TestPitch:
-    def test_add_point(self) -> None:
-        pitch = Pitch()
+    @pytest.fixture(scope="class")
+    def pitch(self) -> Pitch:
+        return Pitch()
+    
+    def test_properties(self, pitch: Pitch) -> None:
+        assert pitch.xaxis_range == (0, 105)
+        assert pitch.yaxis_range == (0, 68)
+
+    def test_add_point(self, pitch: Pitch) -> None:
         pitch.add_point(
             x=10,
             y=20,
@@ -25,11 +34,10 @@ class TestPitch:
         assert trace.opacity == 0.5
 
         number_trace = pitch.fig.data[-1]
-        assert number_trace.text == '20'
-        assert number_trace.textposition == 'middle center'
+        assert number_trace.text == "20"
+        assert number_trace.textposition == "middle center"
 
-    def test_add_line(self) -> None:
-        pitch = Pitch()
+    def test_add_line(self, pitch: Pitch) -> None:
         pitch.add_line(
             start_x=10,
             start_y=20,
@@ -46,8 +54,7 @@ class TestPitch:
         assert trace.line.width == 5
         assert trace.opacity == 0.8
 
-    def test_add_gradient_line(self) -> None:
-        pitch = Pitch()
+    def test_add_gradient_line(self, pitch: Pitch) -> None:
         pitch.add_gradient_line(
             start_x=10,
             start_y=20,
@@ -60,8 +67,7 @@ class TestPitch:
         assert trace.line.width != 4
         assert trace.opacity != 1
 
-    def test_add_annotation(self) -> None:
-        pitch = Pitch()
+    def test_add_annotation(self, pitch: Pitch) -> None:
         pitch.add_annotation(
             start_x=15,
             start_y=25,

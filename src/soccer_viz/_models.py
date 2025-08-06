@@ -52,24 +52,6 @@ class PitchMarkings:
         self._goal_height = goal_height
         self._mark_radius = mark_radius
 
-    def __eq__(self, value: object) -> bool:
-        if not isinstance(value, PitchMarkings):
-            return NotImplemented
-        return (
-            isclose(self.length, value.length)
-            and isclose(self.width, value.width)
-            and isclose(self.center_circle_radius, value.center_circle_radius)
-            and isclose(self.penalty_area_length, value.penalty_area_length)
-            and isclose(
-                self.penalty_mark_distance, value.penalty_mark_distance
-            )
-            and isclose(self.goal_area_length, value.goal_area_length)
-            and isclose(self.corner_arc_radius, value.corner_arc_radius)
-            and isclose(self.goal_width, value.goal_width)
-            and isclose(self.goal_height, value.goal_height)
-            and isclose(self.mark_radius, value.mark_radius)
-        )
-
     @property
     def length(self) -> float:
         return self._length if self._length is not None else Standard.LENGTH
@@ -149,6 +131,24 @@ class PitchMarkings:
                 return Standard.MARK_RADIUS
             return self._length_ratio * Standard.MARK_RADIUS
         return self._mark_radius
+
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, PitchMarkings):
+            return NotImplemented
+        return (
+            isclose(self.length, value.length)
+            and isclose(self.width, value.width)
+            and isclose(self.center_circle_radius, value.center_circle_radius)
+            and isclose(self.penalty_area_length, value.penalty_area_length)
+            and isclose(
+                self.penalty_mark_distance, value.penalty_mark_distance
+            )
+            and isclose(self.goal_area_length, value.goal_area_length)
+            and isclose(self.corner_arc_radius, value.corner_arc_radius)
+            and isclose(self.goal_width, value.goal_width)
+            and isclose(self.goal_height, value.goal_height)
+            and isclose(self.mark_radius, value.mark_radius)
+        )
 
     def __repr__(self) -> str:
         return (
