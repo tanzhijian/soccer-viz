@@ -1,4 +1,6 @@
-from typing import TypedDict
+from typing import Literal, TypedDict
+
+from ._utils import calc_half_axix_range
 
 
 class Area(TypedDict):
@@ -56,13 +58,13 @@ class PitchMarkings:
     @property
     def width(self) -> float:
         return self._width if self._width is not None else Standard.WIDTH
-    
+
     @property
     def aspect_ratio(self) -> float:
         return self.width / self.length
 
     @property
-    def length_ratio(self) -> float:
+    def _length_ratio(self) -> float:
         return self.length / Standard.LENGTH
 
     @property
@@ -70,7 +72,7 @@ class PitchMarkings:
         if self._center_circle_radius is None:
             if self._use_standard:
                 return Standard.CENTER_CIRCLE_RADIUS
-            return self.length_ratio * Standard.CENTER_CIRCLE_RADIUS
+            return self._length_ratio * Standard.CENTER_CIRCLE_RADIUS
         return self._center_circle_radius
 
     @property
@@ -78,7 +80,7 @@ class PitchMarkings:
         if self._penalty_area_length is None:
             if self._use_standard:
                 return Standard.PENALTY_AREA_LENGTH
-            return self.length_ratio * Standard.PENALTY_AREA_LENGTH
+            return self._length_ratio * Standard.PENALTY_AREA_LENGTH
         return self._penalty_area_length
 
     @property
@@ -86,7 +88,7 @@ class PitchMarkings:
         if self._penalty_mark_distance is None:
             if self._use_standard:
                 return Standard.PENALTY_MARK_DISTANCE
-            return self.length_ratio * Standard.PENALTY_MARK_DISTANCE
+            return self._length_ratio * Standard.PENALTY_MARK_DISTANCE
         return self._penalty_mark_distance
 
     @property
@@ -94,7 +96,7 @@ class PitchMarkings:
         if self._goal_area_length is None:
             if self._use_standard:
                 return Standard.GOAL_AREA_LENGTH
-            return self.length_ratio * Standard.GOAL_AREA_LENGTH
+            return self._length_ratio * Standard.GOAL_AREA_LENGTH
         return self._goal_area_length
 
     @property
@@ -102,7 +104,7 @@ class PitchMarkings:
         if self._corner_arc_radius is None:
             if self._use_standard:
                 return Standard.CORNER_ARC_RADIUS
-            return self.length_ratio * Standard.CORNER_ARC_RADIUS
+            return self._length_ratio * Standard.CORNER_ARC_RADIUS
         return self._corner_arc_radius
 
     @property
@@ -110,7 +112,7 @@ class PitchMarkings:
         if self._goal_width is None:
             if self._use_standard:
                 return Standard.GOAL_WIDTH
-            return self.length_ratio * Standard.GOAL_WIDTH
+            return self._length_ratio * Standard.GOAL_WIDTH
         return self._goal_width
 
     @property
@@ -118,7 +120,7 @@ class PitchMarkings:
         if self._goal_height is None:
             if self._use_standard:
                 return Standard.GOAL_HEIGHT
-            return self.length_ratio * Standard.GOAL_HEIGHT
+            return self._length_ratio * Standard.GOAL_HEIGHT
         return self._goal_height
 
     @property
@@ -126,9 +128,9 @@ class PitchMarkings:
         if self._mark_radius is None:
             if self._use_standard:
                 return Standard.MARK_RADIUS
-            return self.length_ratio * Standard.MARK_RADIUS
+            return self._length_ratio * Standard.MARK_RADIUS
         return self._mark_radius
-    
+
     def __repr__(self) -> str:
         return (
             f"PitchMarkings("
@@ -152,25 +154,42 @@ class PitchCoordinates:
         *,
         markings: PitchMarkings | None = None,
         vertical: bool = False,
+        side: Literal["left", "right", "both"] = "both",
     ) -> None:
         self._vertical = vertical
+        self._side = side
         self._markings = markings if markings is not None else PitchMarkings()
-        self._xaxis_range, self._y_axis_range = self._set_axis_range(
+        self._xaxis_range, self._yaxis_range = self._calc_axis_range(
             self._markings.length,
             self._markings.width,
-            vertical=self._vertical,
         )
 
     def _set_axis_range(
-        self, length: float, width: float, vertical: bool
+        self, length: float, width: float
     ) -> tuple[tuple[float, float], tuple[float, float]]:
-        if vertical:
+        if self._vertical:
             return (0, width), (0, length)
         return (0, length), (0, width)
-    
+
+    def _calc_axis_range(
+        self, length: float, width: float
+    ) -> tuple[tuple[float, float], tuple[float, float]]:
+        xaxis_range, yaxis_range = self._set_axis_range(length, width)
+        if self._vertical:
+            if self._side != "both":
+                yaxis_range = calc_half_axix_range(yaxis_range, self._side)
+        else:
+            if self._side != "both":
+                xaxis_range = calc_half_axix_range(xaxis_range, self._side)
+        return xaxis_range, yaxis_range
+
     @property
     def vertical(self) -> bool:
         return self._vertical
+
+    @property
+    def side(self) -> str:
+        return self._side
 
     @property
     def xaxis_start(self) -> float:
@@ -182,19 +201,25 @@ class PitchCoordinates:
 
     @property
     def yaxis_start(self) -> float:
-        return self._y_axis_range[0]
+        return self._yaxis_range[0]
 
     @property
     def yaxis_end(self) -> float:
-        return self._y_axis_range[1]
-    
+        return self._yaxis_range[1]
+
     @property
     def xaxis_range(self) -> tuple[float, float]:
         return self._xaxis_range
 
     @property
     def yaxis_range(self) -> tuple[float, float]:
-        return self._y_axis_range
+        return self._yaxis_range
+
+    @property
+    def aspect_ratio(self) -> float:
+        if self._side != "both":
+            return self._markings.aspect_ratio * 2
+        return self._markings.aspect_ratio
 
     @property
     def _xaxis_length(self) -> float:

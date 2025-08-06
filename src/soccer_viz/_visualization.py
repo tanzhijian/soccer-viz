@@ -3,6 +3,7 @@ from typing import Any, Literal
 import plotly.graph_objects as go
 
 from ._models import PitchCoordinates, PitchMarkings
+from ._utils import calc_half_axix_range
 
 
 class Theme:
@@ -93,15 +94,15 @@ class Pitch:
         theme: Theme | None = None,
         side: Literal["left", "right", "both"] = "both",
     ) -> None:
-        self.coordinates = PitchCoordinates(
-            markings=markings, vertical=vertical
-        )
-        self._xaxis_range, self._yaxis_range = self._set_axis_ranges(
-            length_range, width_range, vertical
-        )
-        self.theme = theme if theme is not None else DefaultTheme()
         self._vertical = vertical
         self._side = side
+        self.coordinates = PitchCoordinates(
+            markings=markings, vertical=vertical, side=side
+        )
+        self._xaxis_range, self._yaxis_range = self._calc_axis_range(
+            length_range, width_range
+        )
+        self.theme = theme if theme is not None else DefaultTheme()
         self.fig = go.Figure()
         self._draw_pitch()
 
@@ -129,13 +130,12 @@ class Pitch:
     def yaxis_range(self) -> tuple[float, float]:
         return self._yaxis_range
 
-    def _set_axis_ranges(
+    def _set_axis_range(
         self,
-        length_range: tuple[float, float] | None = None,
-        width_range: tuple[float, float] | None = None,
-        vertical: bool = False,
+        length_range: tuple[float, float] | None,
+        width_range: tuple[float, float] | None,
     ) -> tuple[tuple[float, float], tuple[float, float]]:
-        if vertical:
+        if self._vertical:
             xaxis_range, yaxis_range = width_range, length_range
         else:
             xaxis_range, yaxis_range = length_range, width_range
@@ -143,6 +143,22 @@ class Pitch:
             xaxis_range = self.coordinates.xaxis_range
         if yaxis_range is None:
             yaxis_range = self.coordinates.yaxis_range
+        return xaxis_range, yaxis_range
+
+    def _calc_axis_range(
+        self,
+        length_range: tuple[float, float] | None,
+        width_range: tuple[float, float] | None,
+    ) -> tuple[tuple[float, float], tuple[float, float]]:
+        xaxis_range, yaxis_range = self._set_axis_range(
+            length_range, width_range
+        )
+        if self._vertical:
+            if self._side != "both" and length_range is not None:
+                yaxis_range = calc_half_axix_range(yaxis_range, self._side)
+        else:
+            if self._side != "both" and width_range is not None:
+                xaxis_range = calc_half_axix_range(xaxis_range, self._side)
         return xaxis_range, yaxis_range
 
     def _draw_background(self) -> None:
@@ -476,18 +492,31 @@ class Pitch:
             return (a - value, b + value)
         return (a + value, b - value)
 
+    def _calc_fig_size(
+        self,
+        length: int | float | None,
+        width: int | float | None,
+    ) -> tuple[int | float, int | float]:
+        if length is None:
+            if self._side != "both":
+                length = 768
+            else:
+                length = 1024
+        if width is None:
+            if self._side != "both":
+                width = length
+            else:
+                width = length * self.coordinates.aspect_ratio + length * 0.07
+        if self.coordinates.vertical:
+            length, width = width, length
+        return length, width
+
     def show(
         self,
-        fig_length: int | float = 1024,
+        fig_length: int | float | None = None,
         fig_width: int | float | None = None,
     ) -> None:
-        if fig_width is None:
-            fig_width = (
-                fig_length * self.coordinates.markings.aspect_ratio
-                + fig_length * 0.07
-            )
-        if self.coordinates.vertical:
-            fig_length, fig_width = fig_width, fig_length
+        fig_length, fig_width = self._calc_fig_size(fig_length, fig_width)
 
         axis: dict[str, Any] = dict(
             xaxis=dict(
@@ -520,14 +549,14 @@ class Pitch:
             axis["xaxis"]["scaleratio"] = 1
             axis["xaxis2"]["scaleanchor"] = "y2"
             axis["xaxis2"]["scaleratio"] = (
-                self.coordinates.markings.aspect_ratio / self._aspect_ratio
+                self.coordinates.aspect_ratio / self._aspect_ratio
             )
         else:
             axis["yaxis"]["scaleanchor"] = "x"
             axis["yaxis"]["scaleratio"] = 1
             axis["yaxis2"]["scaleanchor"] = "x2"
             axis["yaxis2"]["scaleratio"] = (
-                self.coordinates.markings.aspect_ratio / self._aspect_ratio
+                self.coordinates.aspect_ratio / self._aspect_ratio
             )
 
         self.fig.update_layout(
