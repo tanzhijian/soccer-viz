@@ -107,9 +107,14 @@ class Pitch:
             vertical=vertical,
             side=side,
         )
+
         self.theme = theme if theme is not None else DefaultTheme()
         self.fig = go.Figure()
         self._draw_pitch()
+
+    @property
+    def markings(self) -> PitchMarkings:
+        return self._markings
 
     @property
     def xaxis_range(self) -> tuple[float, float]:
