@@ -51,7 +51,7 @@ def test_pitch_markings_equality() -> None:
 class TestStandardCoordinates:
     @pytest.fixture(scope="class")
     def coordinates(self) -> PitchCoordinates:
-        return PitchCoordinates()
+        return PitchCoordinates(markings=PitchMarkings())
 
     def test_properties(self, coordinates: PitchCoordinates) -> None:
         assert coordinates.vertical is False
@@ -265,9 +265,7 @@ class TestCustomCoordinates:
 class TestVerticalCoordinates:
     @pytest.fixture(scope="class")
     def coordinates(self) -> PitchCoordinates:
-        return PitchCoordinates(
-            vertical=True,
-        )
+        return PitchCoordinates(markings=PitchMarkings(), vertical=True)
 
     def test_properties(self, coordinates: PitchCoordinates) -> None:
         assert int(coordinates.xaxis_end) == 68
@@ -378,7 +376,9 @@ def test_side_coordinates(
     vertical: bool,
     result: tuple[float, float],
 ) -> None:
-    coordinates = PitchCoordinates(vertical=vertical, side=side)
+    coordinates = PitchCoordinates(
+        markings=PitchMarkings(), vertical=vertical, side=side
+    )
     if not vertical:
         assert scale_100(coordinates.xaxis_start) == scale_100(result[0])
         assert scale_100(coordinates.xaxis_end) == scale_100(result[1])

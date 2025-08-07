@@ -2,8 +2,7 @@ from typing import Any, Literal
 
 import plotly.graph_objects as go
 
-from ._models import PitchCoordinates, PitchMarkings
-from ._utils import calc_half_axix_range
+from ._models import Coordinates, PitchCoordinates, PitchMarkings
 
 
 class Theme:
@@ -91,81 +90,40 @@ class Pitch:
         width_range: tuple[float, float] | None = None,
         markings: PitchMarkings | None = None,
         vertical: bool = False,
-        theme: Theme | None = None,
         side: Literal["left", "right", "both"] = "both",
+        theme: Theme | None = None,
     ) -> None:
         self._vertical = vertical
         self._side = side
-        self.coordinates = PitchCoordinates(
-            markings=markings, vertical=vertical, side=side
+
+        self._markings = markings if markings is not None else PitchMarkings()
+        self._pitch_coordinates = PitchCoordinates(
+            markings=self._markings, vertical=vertical, side=side
         )
-        self._xaxis_range, self._yaxis_range = self._calc_axis_range(
-            length_range, width_range
+        self._overlay_coordinates = Coordinates(
+            length_range=length_range,
+            width_range=width_range,
+            markings=self._markings,
+            vertical=vertical,
+            side=side,
         )
         self.theme = theme if theme is not None else DefaultTheme()
         self.fig = go.Figure()
         self._draw_pitch()
 
     @property
-    def _length(self) -> float:
-        if self._vertical:
-            return abs(self._yaxis_range[1] - self._yaxis_range[0])
-        return abs(self._xaxis_range[1] - self._xaxis_range[0])
-
-    @property
-    def _width(self) -> float:
-        if self._vertical:
-            return abs(self._xaxis_range[1] - self._xaxis_range[0])
-        return abs(self._yaxis_range[1] - self._yaxis_range[0])
-
-    @property
-    def _aspect_ratio(self) -> float:
-        return self._width / self._length
-
-    @property
     def xaxis_range(self) -> tuple[float, float]:
-        return self._xaxis_range
+        return self._overlay_coordinates.xaxis_range
 
     @property
     def yaxis_range(self) -> tuple[float, float]:
-        return self._yaxis_range
-
-    def _set_axis_range(
-        self,
-        length_range: tuple[float, float] | None,
-        width_range: tuple[float, float] | None,
-    ) -> tuple[tuple[float, float], tuple[float, float]]:
-        if self._vertical:
-            xaxis_range, yaxis_range = width_range, length_range
-        else:
-            xaxis_range, yaxis_range = length_range, width_range
-        if xaxis_range is None:
-            xaxis_range = self.coordinates.xaxis_range
-        if yaxis_range is None:
-            yaxis_range = self.coordinates.yaxis_range
-        return xaxis_range, yaxis_range
-
-    def _calc_axis_range(
-        self,
-        length_range: tuple[float, float] | None,
-        width_range: tuple[float, float] | None,
-    ) -> tuple[tuple[float, float], tuple[float, float]]:
-        xaxis_range, yaxis_range = self._set_axis_range(
-            length_range, width_range
-        )
-        if self._vertical:
-            if self._side != "both" and length_range is not None:
-                yaxis_range = calc_half_axix_range(yaxis_range, self._side)
-        else:
-            if self._side != "both" and width_range is not None:
-                xaxis_range = calc_half_axix_range(xaxis_range, self._side)
-        return xaxis_range, yaxis_range
+        return self._overlay_coordinates.yaxis_range
 
     def _draw_background(self) -> None:
         self.fig.add_shape(
             type="rect",
             layer="below",
-            **self.coordinates.pitch_area(),
+            **self._pitch_coordinates.pitch_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -176,7 +134,7 @@ class Pitch:
         self.fig.add_shape(
             type="circle",
             layer="below",
-            **self.coordinates.centre_circle(),
+            **self._pitch_coordinates.centre_circle(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -185,7 +143,7 @@ class Pitch:
         self.fig.add_shape(
             type="circle",
             layer="below",
-            **self.coordinates.centre_mark(),
+            **self._pitch_coordinates.centre_mark(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -194,7 +152,7 @@ class Pitch:
         self.fig.add_shape(
             type="line",
             layer="below",
-            **self.coordinates.halfway_line(),
+            **self._pitch_coordinates.halfway_line(),
             line_color=self.theme.border,
             xref="x",
             yref="y",
@@ -204,7 +162,7 @@ class Pitch:
         self.fig.add_shape(
             type="circle",
             layer="below",
-            **self.coordinates.left_penalty_arc(),
+            **self._pitch_coordinates.left_penalty_arc(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -213,7 +171,7 @@ class Pitch:
         self.fig.add_shape(
             type="rect",
             layer="below",
-            **self.coordinates.left_penalty_area(),
+            **self._pitch_coordinates.left_penalty_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -222,7 +180,7 @@ class Pitch:
         self.fig.add_shape(
             type="circle",
             layer="below",
-            **self.coordinates.left_penalty_mark(),
+            **self._pitch_coordinates.left_penalty_mark(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -231,7 +189,7 @@ class Pitch:
         self.fig.add_shape(
             type="rect",
             layer="below",
-            **self.coordinates.left_goal_area(),
+            **self._pitch_coordinates.left_goal_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -240,7 +198,7 @@ class Pitch:
         self.fig.add_shape(
             type="rect",
             layer="below",
-            **self.coordinates.left_goal(),
+            **self._pitch_coordinates.left_goal(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -251,7 +209,7 @@ class Pitch:
         self.fig.add_shape(
             type="circle",
             layer="below",
-            **self.coordinates.right_penalty_arc(),
+            **self._pitch_coordinates.right_penalty_arc(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -260,7 +218,7 @@ class Pitch:
         self.fig.add_shape(
             type="rect",
             layer="below",
-            **self.coordinates.right_penalty_area(),
+            **self._pitch_coordinates.right_penalty_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -269,7 +227,7 @@ class Pitch:
         self.fig.add_shape(
             type="circle",
             layer="below",
-            **self.coordinates.right_penalty_mark(),
+            **self._pitch_coordinates.right_penalty_mark(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -278,7 +236,7 @@ class Pitch:
         self.fig.add_shape(
             type="rect",
             layer="below",
-            **self.coordinates.right_goal_area(),
+            **self._pitch_coordinates.right_goal_area(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -287,7 +245,7 @@ class Pitch:
         self.fig.add_shape(
             type="rect",
             layer="below",
-            **self.coordinates.right_goal(),
+            **self._pitch_coordinates.right_goal(),
             line_color=self.theme.border,
             fillcolor=self.theme.background,
             xref="x",
@@ -506,8 +464,11 @@ class Pitch:
             if self._side != "both":
                 width = length
             else:
-                width = length * self.coordinates.aspect_ratio + length * 0.07
-        if self.coordinates.vertical:
+                width = (
+                    length * self._pitch_coordinates.aspect_ratio
+                    + length * 0.07
+                )
+        if self._pitch_coordinates.vertical:
             length, width = width, length
         return length, width
 
@@ -520,25 +481,33 @@ class Pitch:
 
         axis: dict[str, Any] = dict(
             xaxis=dict(
-                range=self._extend_axis_range(self.coordinates.xaxis_range),
+                range=self._extend_axis_range(
+                    self._pitch_coordinates.xaxis_range
+                ),
                 showgrid=False,
                 zeroline=False,
                 showticklabels=False,
             ),
             yaxis=dict(
-                range=self._extend_axis_range(self.coordinates.yaxis_range),
+                range=self._extend_axis_range(
+                    self._pitch_coordinates.yaxis_range
+                ),
                 showgrid=False,
                 zeroline=False,
                 showticklabels=False,
             ),
             xaxis2=dict(
-                range=self._extend_axis_range(self.xaxis_range),
+                range=self._extend_axis_range(
+                    self._overlay_coordinates.xaxis_range
+                ),
                 showgrid=False,
                 zeroline=False,
                 overlaying="x",
             ),
             yaxis2=dict(
-                range=self._extend_axis_range(self.yaxis_range),
+                range=self._extend_axis_range(
+                    self._overlay_coordinates.yaxis_range
+                ),
                 showgrid=False,
                 zeroline=False,
                 overlaying="y",
@@ -549,14 +518,16 @@ class Pitch:
             axis["xaxis"]["scaleratio"] = 1
             axis["xaxis2"]["scaleanchor"] = "y2"
             axis["xaxis2"]["scaleratio"] = (
-                self.coordinates.aspect_ratio / self._aspect_ratio
+                self._pitch_coordinates.aspect_ratio
+                / self._overlay_coordinates.aspect_ratio
             )
         else:
             axis["yaxis"]["scaleanchor"] = "x"
             axis["yaxis"]["scaleratio"] = 1
             axis["yaxis2"]["scaleanchor"] = "x2"
             axis["yaxis2"]["scaleratio"] = (
-                self.coordinates.aspect_ratio / self._aspect_ratio
+                self._pitch_coordinates.aspect_ratio
+                / self._overlay_coordinates.aspect_ratio
             )
 
         self.fig.update_layout(

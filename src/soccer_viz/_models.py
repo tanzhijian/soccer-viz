@@ -1,8 +1,6 @@
 from math import isclose
 from typing import Literal, TypedDict
 
-from ._utils import calc_half_axix_range
-
 
 class Area(TypedDict):
     x0: float
@@ -167,40 +165,59 @@ class PitchMarkings:
         )
 
 
-class PitchCoordinates:
+class Coordinates:
     def __init__(
         self,
         *,
-        markings: PitchMarkings | None = None,
+        length_range: tuple[float, float] | None = None,
+        width_range: tuple[float, float] | None = None,
+        markings: PitchMarkings,
         vertical: bool = False,
         side: Literal["left", "right", "both"] = "both",
     ) -> None:
+        self._markings = markings
         self._vertical = vertical
         self._side = side
-        self._markings = markings if markings is not None else PitchMarkings()
-        self._xaxis_range, self._yaxis_range = self._calc_axis_range(
-            self._markings.length,
-            self._markings.width,
+
+        self._length_range, self._width_range = self._calc_ranges(
+            length_range, width_range
         )
 
-    def _set_axis_range(
-        self, length: float, width: float
-    ) -> tuple[tuple[float, float], tuple[float, float]]:
-        if self._vertical:
-            return (0, width), (0, length)
-        return (0, length), (0, width)
+    def _calc_half_axix_range(
+        self, axis_range: tuple[float, float], side: str
+    ) -> tuple[float, float]:
+        if side == "left":
+            return (
+                axis_range[0],
+                axis_range[0] + (axis_range[1] - axis_range[0]) / 2,
+            )
+        if side == "right":
+            return (
+                axis_range[0] + (axis_range[1] - axis_range[0]) / 2,
+                axis_range[1],
+            )
+        raise ValueError(f"Invalid side: {side}. Expected 'left' or 'right'.")
 
-    def _calc_axis_range(
-        self, length: float, width: float
+    def _set_ranges(
+        self,
+        length_range: tuple[float, float] | None,
+        width_range: tuple[float, float] | None,
     ) -> tuple[tuple[float, float], tuple[float, float]]:
-        xaxis_range, yaxis_range = self._set_axis_range(length, width)
-        if self._vertical:
-            if self._side != "both":
-                yaxis_range = calc_half_axix_range(yaxis_range, self._side)
-        else:
-            if self._side != "both":
-                xaxis_range = calc_half_axix_range(xaxis_range, self._side)
-        return xaxis_range, yaxis_range
+        if length_range is None:
+            length_range = (0, self._markings.length)
+        if width_range is None:
+            width_range = (0, self._markings.width)
+        return length_range, width_range
+
+    def _calc_ranges(
+        self,
+        length_range: tuple[float, float] | None,
+        width_range: tuple[float, float] | None,
+    ) -> tuple[tuple[float, float], tuple[float, float]]:
+        length_range, width_range = self._set_ranges(length_range, width_range)
+        if self._side != "both":
+            length_range = self._calc_half_axix_range(length_range, self._side)
+        return length_range, width_range
 
     @property
     def vertical(self) -> bool:
@@ -211,37 +228,72 @@ class PitchCoordinates:
         return self._side
 
     @property
-    def xaxis_start(self) -> float:
-        return self._xaxis_range[0]
+    def markings(self) -> PitchMarkings:
+        return self._markings
 
     @property
-    def xaxis_end(self) -> float:
-        return self._xaxis_range[1]
+    def length(self) -> float:
+        return abs(self._length_range[1] - self._length_range[0])
 
     @property
-    def yaxis_start(self) -> float:
-        return self._yaxis_range[0]
-
-    @property
-    def yaxis_end(self) -> float:
-        return self._yaxis_range[1]
-
-    @property
-    def xaxis_range(self) -> tuple[float, float]:
-        return self._xaxis_range
-
-    @property
-    def yaxis_range(self) -> tuple[float, float]:
-        return self._yaxis_range
+    def width(self) -> float:
+        return abs(self._width_range[1] - self._width_range[0])
 
     @property
     def aspect_ratio(self) -> float:
-        if self._side != "both":
-            return self._markings.aspect_ratio * 2
-        return self._markings.aspect_ratio
+        return self.width / self.length
 
     @property
-    def _xaxis_length(self) -> float:
+    def xaxis_range(self) -> tuple[float, float]:
+        return self._length_range if not self._vertical else self._width_range
+
+    @property
+    def yaxis_range(self) -> tuple[float, float]:
+        return self._width_range if not self._vertical else self._length_range
+
+    @property
+    def xaxis_length(self) -> float:
+        return abs(self.xaxis_range[1] - self.xaxis_range[0])
+
+    @property
+    def yaxis_length(self) -> float:
+        return abs(self.yaxis_range[1] - self.yaxis_range[0])
+
+    @property
+    def xaxis_start(self) -> float:
+        return self.xaxis_range[0]
+
+    @property
+    def xaxis_end(self) -> float:
+        return self.xaxis_range[1]
+
+    @property
+    def yaxis_start(self) -> float:
+        return self.yaxis_range[0]
+
+    @property
+    def yaxis_end(self) -> float:
+        return self.yaxis_range[1]
+
+
+class PitchCoordinates(Coordinates):
+    def __init__(
+        self,
+        *,
+        markings: PitchMarkings,
+        vertical: bool = False,
+        side: Literal["left", "right", "both"] = "both",
+    ) -> None:
+        self._markings = markings
+        self._vertical = vertical
+        self._side = side
+        self._length_range, self._width_range = self._calc_ranges(
+            length_range=(0, self._markings.length),
+            width_range=(0, self._markings.width),
+        )
+
+    @property
+    def full_xaxis_length(self) -> float:
         return (
             self._markings.length
             if not self._vertical
@@ -249,16 +301,12 @@ class PitchCoordinates:
         )
 
     @property
-    def _yaxis_length(self) -> float:
+    def full_yaxis_length(self) -> float:
         return (
             self._markings.width
             if not self._vertical
             else self._markings.length
         )
-
-    @property
-    def markings(self) -> PitchMarkings:
-        return self._markings
 
     def pitch_area(self) -> Area:
         return Area(
@@ -270,43 +318,47 @@ class PitchCoordinates:
 
     def centre_circle(self) -> Area:
         return {
-            "x0": self._xaxis_length / 2 - self.markings.center_circle_radius,
-            "y0": self._yaxis_length / 2 - self.markings.center_circle_radius,
-            "x1": self._xaxis_length / 2 + self.markings.center_circle_radius,
-            "y1": self._yaxis_length / 2 + self.markings.center_circle_radius,
+            "x0": self.full_xaxis_length / 2
+            - self.markings.center_circle_radius,
+            "y0": self.full_yaxis_length / 2
+            - self.markings.center_circle_radius,
+            "x1": self.full_xaxis_length / 2
+            + self.markings.center_circle_radius,
+            "y1": self.full_yaxis_length / 2
+            + self.markings.center_circle_radius,
         }
 
     def centre_mark(self) -> Area:
         return {
-            "x0": self._xaxis_length / 2 - self.markings.mark_radius,
-            "y0": self._yaxis_length / 2 - self.markings.mark_radius,
-            "x1": self._xaxis_length / 2 + self.markings.mark_radius,
-            "y1": self._yaxis_length / 2 + self.markings.mark_radius,
+            "x0": self.full_xaxis_length / 2 - self.markings.mark_radius,
+            "y0": self.full_yaxis_length / 2 - self.markings.mark_radius,
+            "x1": self.full_xaxis_length / 2 + self.markings.mark_radius,
+            "y1": self.full_yaxis_length / 2 + self.markings.mark_radius,
         }
 
     def halfway_line(self) -> Area:
         if self._vertical:
             return {
                 "x0": self.xaxis_start,
-                "y0": self._yaxis_length / 2,
+                "y0": self.full_yaxis_length / 2,
                 "x1": self.xaxis_end,
-                "y1": self._yaxis_length / 2,
+                "y1": self.full_yaxis_length / 2,
             }
         return {
-            "x0": self._xaxis_length / 2,
+            "x0": self.full_xaxis_length / 2,
             "y0": self.yaxis_start,
-            "x1": self._xaxis_length / 2,
+            "x1": self.full_xaxis_length / 2,
             "y1": self.yaxis_end,
         }
 
     def left_penalty_arc(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2
+                "x0": self.full_xaxis_length / 2
                 - self.markings.center_circle_radius,
                 "y0": self.markings.penalty_mark_distance
                 - self.markings.center_circle_radius,
-                "x1": self._xaxis_length / 2
+                "x1": self.full_xaxis_length / 2
                 + self.markings.center_circle_radius,
                 "y1": self.markings.penalty_mark_distance
                 + self.markings.center_circle_radius,
@@ -314,31 +366,33 @@ class PitchCoordinates:
         return {
             "x0": self.markings.penalty_mark_distance
             - self.markings.center_circle_radius,
-            "y0": self._yaxis_length / 2 - self.markings.center_circle_radius,
+            "y0": self.full_yaxis_length / 2
+            - self.markings.center_circle_radius,
             "x1": self.markings.penalty_mark_distance
             + self.markings.center_circle_radius,
-            "y1": self._yaxis_length / 2 + self.markings.center_circle_radius,
+            "y1": self.full_yaxis_length / 2
+            + self.markings.center_circle_radius,
         }
 
     def left_penalty_area(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2
+                "x0": self.full_xaxis_length / 2
                 - self.markings.goal_width / 2
                 - self.markings.penalty_area_length,
                 "y0": self.yaxis_start,
-                "x1": self._xaxis_length / 2
+                "x1": self.full_xaxis_length / 2
                 + self.markings.goal_width / 2
                 + self.markings.penalty_area_length,
                 "y1": self.markings.penalty_area_length,
             }
         return {
             "x0": self.xaxis_start,
-            "y0": self._yaxis_length / 2
+            "y0": self.full_yaxis_length / 2
             - self.markings.goal_width / 2
             - self.markings.penalty_area_length,
             "x1": self.markings.penalty_area_length,
-            "y1": self._yaxis_length / 2
+            "y1": self.full_yaxis_length / 2
             + self.markings.goal_width / 2
             + self.markings.penalty_area_length,
         }
@@ -346,41 +400,41 @@ class PitchCoordinates:
     def left_penalty_mark(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2 - self.markings.mark_radius,
+                "x0": self.full_xaxis_length / 2 - self.markings.mark_radius,
                 "y0": self.markings.penalty_mark_distance
                 - self.markings.mark_radius,
-                "x1": self._xaxis_length / 2 + self.markings.mark_radius,
+                "x1": self.full_xaxis_length / 2 + self.markings.mark_radius,
                 "y1": self.markings.penalty_mark_distance
                 + self.markings.mark_radius,
             }
         return {
             "x0": self.markings.penalty_mark_distance
             - self.markings.mark_radius,
-            "y0": self._yaxis_length / 2 - self.markings.mark_radius,
+            "y0": self.full_yaxis_length / 2 - self.markings.mark_radius,
             "x1": self.markings.penalty_mark_distance
             + self.markings.mark_radius,
-            "y1": self._yaxis_length / 2 + self.markings.mark_radius,
+            "y1": self.full_yaxis_length / 2 + self.markings.mark_radius,
         }
 
     def left_goal_area(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2
+                "x0": self.full_xaxis_length / 2
                 - self.markings.goal_width / 2
                 - self.markings.goal_area_length,
                 "y0": self.yaxis_start,
-                "x1": self._xaxis_length / 2
+                "x1": self.full_xaxis_length / 2
                 + self.markings.goal_width / 2
                 + self.markings.goal_area_length,
                 "y1": self.markings.goal_area_length,
             }
         return {
             "x0": self.xaxis_start,
-            "y0": self._yaxis_length / 2
+            "y0": self.full_yaxis_length / 2
             - self.markings.goal_width / 2
             - self.markings.goal_area_length,
             "x1": self.markings.goal_area_length,
-            "y1": self._yaxis_length / 2
+            "y1": self.full_yaxis_length / 2
             + self.markings.goal_width / 2
             + self.markings.goal_area_length,
         }
@@ -388,62 +442,67 @@ class PitchCoordinates:
     def left_goal(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2 - self.markings.goal_width / 2,
+                "x0": self.full_xaxis_length / 2
+                - self.markings.goal_width / 2,
                 "y0": self.yaxis_start,
-                "x1": self._xaxis_length / 2 + self.markings.goal_width / 2,
+                "x1": self.full_xaxis_length / 2
+                + self.markings.goal_width / 2,
                 "y1": -self.markings.goal_height,
             }
         return {
             "x0": -self.markings.goal_height,
-            "y0": self._yaxis_length / 2 - self.markings.goal_width / 2,
+            "y0": self.full_yaxis_length / 2 - self.markings.goal_width / 2,
             "x1": self.xaxis_start,
-            "y1": self._yaxis_length / 2 + self.markings.goal_width / 2,
+            "y1": self.full_yaxis_length / 2 + self.markings.goal_width / 2,
         }
 
     def right_penalty_arc(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2
+                "x0": self.full_xaxis_length / 2
                 - self.markings.center_circle_radius,
-                "y0": self._yaxis_length
+                "y0": self.full_yaxis_length
                 - self.markings.penalty_mark_distance
                 - self.markings.center_circle_radius,
-                "x1": self._xaxis_length / 2
+                "x1": self.full_xaxis_length / 2
                 + self.markings.center_circle_radius,
-                "y1": self._yaxis_length
+                "y1": self.full_yaxis_length
                 - self.markings.penalty_mark_distance
                 + self.markings.center_circle_radius,
             }
         return {
-            "x0": self._xaxis_length
+            "x0": self.full_xaxis_length
             - self.markings.penalty_mark_distance
             - self.markings.center_circle_radius,
-            "y0": self._yaxis_length / 2 - self.markings.center_circle_radius,
-            "x1": self._xaxis_length
+            "y0": self.full_yaxis_length / 2
+            - self.markings.center_circle_radius,
+            "x1": self.full_xaxis_length
             - self.markings.penalty_mark_distance
             + self.markings.center_circle_radius,
-            "y1": self._yaxis_length / 2 + self.markings.center_circle_radius,
+            "y1": self.full_yaxis_length / 2
+            + self.markings.center_circle_radius,
         }
 
     def right_penalty_area(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2
+                "x0": self.full_xaxis_length / 2
                 - self.markings.goal_width / 2
                 - self.markings.penalty_area_length,
                 "y0": self.yaxis_end,
-                "x1": self._xaxis_length / 2
+                "x1": self.full_xaxis_length / 2
                 + self.markings.goal_width / 2
                 + self.markings.penalty_area_length,
-                "y1": self._yaxis_length - self.markings.penalty_area_length,
+                "y1": self.full_yaxis_length
+                - self.markings.penalty_area_length,
             }
         return {
             "x0": self.xaxis_end,
-            "y0": self._yaxis_length / 2
+            "y0": self.full_yaxis_length / 2
             - self.markings.goal_width / 2
             - self.markings.penalty_area_length,
-            "x1": self._xaxis_length - self.markings.penalty_area_length,
-            "y1": self._yaxis_length / 2
+            "x1": self.full_xaxis_length - self.markings.penalty_area_length,
+            "y1": self.full_yaxis_length / 2
             + self.markings.goal_width / 2
             + self.markings.penalty_area_length,
         }
@@ -451,45 +510,45 @@ class PitchCoordinates:
     def right_penalty_mark(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2 - self.markings.mark_radius,
-                "y0": self._yaxis_length
+                "x0": self.full_xaxis_length / 2 - self.markings.mark_radius,
+                "y0": self.full_yaxis_length
                 - self.markings.penalty_mark_distance
                 - self.markings.mark_radius,
-                "x1": self._xaxis_length / 2 + self.markings.mark_radius,
-                "y1": self._yaxis_length
+                "x1": self.full_xaxis_length / 2 + self.markings.mark_radius,
+                "y1": self.full_yaxis_length
                 - self.markings.penalty_mark_distance
                 + self.markings.mark_radius,
             }
         return {
-            "x0": self._xaxis_length
+            "x0": self.full_xaxis_length
             - self.markings.penalty_mark_distance
             - self.markings.mark_radius,
-            "y0": self._yaxis_length / 2 - self.markings.mark_radius,
-            "x1": self._xaxis_length
+            "y0": self.full_yaxis_length / 2 - self.markings.mark_radius,
+            "x1": self.full_xaxis_length
             - self.markings.penalty_mark_distance
             + self.markings.mark_radius,
-            "y1": self._yaxis_length / 2 + self.markings.mark_radius,
+            "y1": self.full_yaxis_length / 2 + self.markings.mark_radius,
         }
 
     def right_goal_area(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2
+                "x0": self.full_xaxis_length / 2
                 - self.markings.goal_width / 2
                 - self.markings.goal_area_length,
                 "y0": self.yaxis_end,
-                "x1": self._xaxis_length / 2
+                "x1": self.full_xaxis_length / 2
                 + self.markings.goal_width / 2
                 + self.markings.goal_area_length,
-                "y1": self._yaxis_length - self.markings.goal_area_length,
+                "y1": self.full_yaxis_length - self.markings.goal_area_length,
             }
         return {
             "x0": self.xaxis_end,
-            "y0": self._yaxis_length / 2
+            "y0": self.full_yaxis_length / 2
             - self.markings.goal_width / 2
             - self.markings.goal_area_length,
-            "x1": self._xaxis_length - self.markings.goal_area_length,
-            "y1": self._yaxis_length / 2
+            "x1": self.full_xaxis_length - self.markings.goal_area_length,
+            "y1": self.full_yaxis_length / 2
             + self.markings.goal_width / 2
             + self.markings.goal_area_length,
         }
@@ -497,14 +556,16 @@ class PitchCoordinates:
     def right_goal(self) -> Area:
         if self._vertical:
             return {
-                "x0": self._xaxis_length / 2 - self.markings.goal_width / 2,
+                "x0": self.full_xaxis_length / 2
+                - self.markings.goal_width / 2,
                 "y0": self.yaxis_end,
-                "x1": self._xaxis_length / 2 + self.markings.goal_width / 2,
-                "y1": self._yaxis_length + self.markings.goal_height,
+                "x1": self.full_xaxis_length / 2
+                + self.markings.goal_width / 2,
+                "y1": self.full_yaxis_length + self.markings.goal_height,
             }
         return {
             "x0": self.xaxis_end,
-            "y0": self._yaxis_length / 2 - self.markings.goal_width / 2,
-            "x1": self._xaxis_length + self.markings.goal_height,
-            "y1": self._yaxis_length / 2 + self.markings.goal_width / 2,
+            "y0": self.full_yaxis_length / 2 - self.markings.goal_width / 2,
+            "x1": self.full_xaxis_length + self.markings.goal_height,
+            "y1": self.full_yaxis_length / 2 + self.markings.goal_width / 2,
         }
