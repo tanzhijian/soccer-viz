@@ -480,8 +480,6 @@ class Pitch:
                     length * self._background_coordinates.aspect_ratio
                     + length * 0.07
                 )
-        if self._background_coordinates.vertical:
-            length, width = width, length
         return length, width
 
     def show(

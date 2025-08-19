@@ -2,7 +2,11 @@ from typing import Literal
 
 import pytest
 
-from soccer_viz._models import PitchCoordinates, PitchMarkings
+from soccer_viz._models import (
+    BackgroundPitchCoordinates,
+    PitchCoordinates,
+    PitchMarkings,
+)
 
 
 def scale_100(value: float) -> int:
@@ -385,3 +389,17 @@ def test_side_coordinates(
     else:
         assert scale_100(coordinates.yaxis_start) == scale_100(result[0])
         assert scale_100(coordinates.yaxis_end) == scale_100(result[1])
+
+
+class TestBackgroundPitchCoordinates:
+    @pytest.fixture(scope="class")
+    def coordinates(self) -> BackgroundPitchCoordinates:
+        markings = PitchMarkings()
+        coordinates = BackgroundPitchCoordinates(markings=markings)
+        return coordinates
+
+    def test_properties(self, coordinates: BackgroundPitchCoordinates) -> None:
+        assert coordinates.xaxis_start == 0
+        assert coordinates.xaxis_end == 105
+        assert coordinates.yaxis_start == 0
+        assert coordinates.yaxis_end == 68
