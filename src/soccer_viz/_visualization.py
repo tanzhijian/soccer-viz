@@ -1,3 +1,5 @@
+import base64
+from pathlib import Path
 from typing import Any, Literal
 
 import plotly.graph_objects as go
@@ -118,11 +120,11 @@ class Pitch:
     @property
     def markings(self) -> PitchMarkings:
         return self._markings
-    
+
     @property
     def coordinates(self) -> PitchCoordinates:
         return self._coordinates
-    
+
     @property
     def xaxis_range(self) -> tuple[float, float]:
         return self._coordinates.xaxis_range
@@ -273,6 +275,20 @@ class Pitch:
         if self._side == "both":
             self._draw_centre()
 
+    def _file_to_data_uri(self, path: Path | str) -> str:
+        suffix = Path(path).suffix.lower()
+        mime = {
+            ".png": "image/png",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".gif": "image/gif",
+            ".svg": "image/svg+xml",
+            ".webp": "image/webp",
+        }.get(suffix, "application/octet-stream")
+        data = Path(path).read_bytes()
+        b64 = base64.b64encode(data).decode("ascii")
+        return f"data:{mime};base64,{b64}"
+
     def add_point(
         self,
         x: float,
@@ -284,6 +300,7 @@ class Pitch:
         color: str | None = None,
         opacity: float = 1.0,
         symbol: Literal["circle", "square", "triangle-up"] = "circle",
+        image_path: Path | str | None = None,
     ) -> None:
         if color is None:
             color = self.theme.home_team
@@ -313,6 +330,21 @@ class Pitch:
                     showlegend=False,
                     xaxis="x2",
                     yaxis="y2",
+                )
+            )
+        if image_path is not None:
+            self.fig.add_layout_image(
+                dict(
+                    source=self._file_to_data_uri(image_path),
+                    x=x,
+                    y=y,
+                    xanchor="center",
+                    yanchor="middle",
+                    xref="x2",
+                    yref="y2",
+                    sizex=size / 5,
+                    sizey=size / 5,
+                    opacity=opacity,
                 )
             )
 
@@ -507,17 +539,13 @@ class Pitch:
                 showticklabels=False,
             ),
             xaxis2=dict(
-                range=self._extend_axis_range(
-                    self._coordinates.xaxis_range
-                ),
+                range=self._extend_axis_range(self._coordinates.xaxis_range),
                 showgrid=False,
                 zeroline=False,
                 overlaying="x",
             ),
             yaxis2=dict(
-                range=self._extend_axis_range(
-                    self._coordinates.yaxis_range
-                ),
+                range=self._extend_axis_range(self._coordinates.yaxis_range),
                 showgrid=False,
                 zeroline=False,
                 overlaying="y",
