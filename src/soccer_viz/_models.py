@@ -10,8 +10,8 @@ class Area(TypedDict):
 
 
 class Standard:
-    LENGTH = 105.0
-    WIDTH = 68.0
+    TOUCH_LINE = 105.0
+    GOAL_LINE = 68.0
     CENTER_CIRCLE_RADIUS = 9.15
     PENALTY_AREA_LENGTH = 16.5
     PENALTY_MARK_DISTANCE = 11.0
@@ -26,8 +26,8 @@ class PitchMarkings:
     def __init__(
         self,
         *,
-        length: float | None = None,
-        width: float | None = None,
+        touch_line: float | None = None,
+        goal_line: float | None = None,
         use_standard: bool = True,
         center_circle_radius: float | None = None,
         penalty_area_length: float | None = None,
@@ -38,8 +38,8 @@ class PitchMarkings:
         goal_height: float | None = None,
         mark_radius: float | None = None,
     ) -> None:
-        self._length = length
-        self._width = width
+        self._touch_line = touch_line
+        self._goal_line = goal_line
         self._use_standard = use_standard
         self._center_circle_radius = center_circle_radius
         self._penalty_area_length = penalty_area_length
@@ -51,27 +51,35 @@ class PitchMarkings:
         self._mark_radius = mark_radius
 
     @property
-    def length(self) -> float:
-        return self._length if self._length is not None else Standard.LENGTH
+    def touch_line(self) -> float:
+        return (
+            self._touch_line
+            if self._touch_line is not None
+            else Standard.TOUCH_LINE
+        )
 
     @property
-    def width(self) -> float:
-        return self._width if self._width is not None else Standard.WIDTH
+    def goal_line(self) -> float:
+        return (
+            self._goal_line
+            if self._goal_line is not None
+            else Standard.GOAL_LINE
+        )
 
     @property
     def aspect_ratio(self) -> float:
-        return self.width / self.length
+        return self.goal_line / self.touch_line
 
     @property
-    def _length_ratio(self) -> float:
-        return self.length / Standard.LENGTH
+    def _touch_line_ratio(self) -> float:
+        return self.touch_line / Standard.TOUCH_LINE
 
     @property
     def center_circle_radius(self) -> float:
         if self._center_circle_radius is None:
             if self._use_standard:
                 return Standard.CENTER_CIRCLE_RADIUS
-            return self._length_ratio * Standard.CENTER_CIRCLE_RADIUS
+            return self._touch_line_ratio * Standard.CENTER_CIRCLE_RADIUS
         return self._center_circle_radius
 
     @property
@@ -79,7 +87,7 @@ class PitchMarkings:
         if self._penalty_area_length is None:
             if self._use_standard:
                 return Standard.PENALTY_AREA_LENGTH
-            return self._length_ratio * Standard.PENALTY_AREA_LENGTH
+            return self._touch_line_ratio * Standard.PENALTY_AREA_LENGTH
         return self._penalty_area_length
 
     @property
@@ -87,7 +95,7 @@ class PitchMarkings:
         if self._penalty_mark_distance is None:
             if self._use_standard:
                 return Standard.PENALTY_MARK_DISTANCE
-            return self._length_ratio * Standard.PENALTY_MARK_DISTANCE
+            return self._touch_line_ratio * Standard.PENALTY_MARK_DISTANCE
         return self._penalty_mark_distance
 
     @property
@@ -95,7 +103,7 @@ class PitchMarkings:
         if self._goal_area_length is None:
             if self._use_standard:
                 return Standard.GOAL_AREA_LENGTH
-            return self._length_ratio * Standard.GOAL_AREA_LENGTH
+            return self._touch_line_ratio * Standard.GOAL_AREA_LENGTH
         return self._goal_area_length
 
     @property
@@ -103,7 +111,7 @@ class PitchMarkings:
         if self._corner_arc_radius is None:
             if self._use_standard:
                 return Standard.CORNER_ARC_RADIUS
-            return self._length_ratio * Standard.CORNER_ARC_RADIUS
+            return self._touch_line_ratio * Standard.CORNER_ARC_RADIUS
         return self._corner_arc_radius
 
     @property
@@ -111,7 +119,7 @@ class PitchMarkings:
         if self._goal_width is None:
             if self._use_standard:
                 return Standard.GOAL_WIDTH
-            return self._length_ratio * Standard.GOAL_WIDTH
+            return self._touch_line_ratio * Standard.GOAL_WIDTH
         return self._goal_width
 
     @property
@@ -119,7 +127,7 @@ class PitchMarkings:
         if self._goal_height is None:
             if self._use_standard:
                 return Standard.GOAL_HEIGHT
-            return self._length_ratio * Standard.GOAL_HEIGHT
+            return self._touch_line_ratio * Standard.GOAL_HEIGHT
         return self._goal_height
 
     @property
@@ -127,15 +135,15 @@ class PitchMarkings:
         if self._mark_radius is None:
             if self._use_standard:
                 return Standard.MARK_RADIUS
-            return self._length_ratio * Standard.MARK_RADIUS
+            return self._touch_line_ratio * Standard.MARK_RADIUS
         return self._mark_radius
 
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, PitchMarkings):
             return NotImplemented
         return (
-            isclose(self.length, value.length)
-            and isclose(self.width, value.width)
+            isclose(self.touch_line, value.touch_line)
+            and isclose(self.goal_line, value.goal_line)
             and isclose(self.center_circle_radius, value.center_circle_radius)
             and isclose(self.penalty_area_length, value.penalty_area_length)
             and isclose(
@@ -151,8 +159,8 @@ class PitchMarkings:
     def __repr__(self) -> str:
         return (
             f"PitchMarkings("
-            f"length={self.length}, "
-            f"width={self.width}, "
+            f"touch_line={self.touch_line}, "
+            f"goal_line={self.goal_line}, "
             f"center_circle_radius={self.center_circle_radius}, "
             f"penalty_area_length={self.penalty_area_length}, "
             f"penalty_mark_distance={self.penalty_mark_distance}, "
@@ -169,8 +177,8 @@ class PitchCoordinates:
     def __init__(
         self,
         *,
-        length_range: tuple[float, float] | None = None,
-        width_range: tuple[float, float] | None = None,
+        touch_line_range: tuple[float, float] | None = None,
+        goal_line_range: tuple[float, float] | None = None,
         markings: PitchMarkings,
         vertical: bool = False,
         side: Literal["left", "right", "both"] = "both",
@@ -179,59 +187,61 @@ class PitchCoordinates:
         self._vertical = vertical
         self._side = side
 
-        self._full_length_range, self._full_width_range = (
-            self._set_ranges(length_range, width_range)
+        self._full_touch_line_range, self._full_goal_line_range = (
+            self._set_ranges(touch_line_range, goal_line_range)
         )
-        self._length_range, self._width_range = self._calc_ranges(
-            self._full_length_range, self._full_width_range
+        self._touch_line_range, self._goal_line_range = self._calc_ranges(
+            self._full_touch_line_range, self._full_goal_line_range
         )
         self._xaxis_range, self._yaxis_range = self._set_axis_ranges(
-            self._length_range, self._width_range
+            self._touch_line_range, self._goal_line_range
         )
 
     def _set_ranges(
         self,
-        length_range: tuple[float, float] | None,
-        width_range: tuple[float, float] | None,
+        touch_line_range: tuple[float, float] | None,
+        goal_line_range: tuple[float, float] | None,
     ) -> tuple[tuple[float, float], tuple[float, float]]:
-        if length_range is None:
-            length_range = (0, self._markings.length)
-        if width_range is None:
-            width_range = (0, self._markings.width)
-        return length_range, width_range
-    
-    def _calc_half_axix_range(
-        self, axis_range: tuple[float, float], side: str
+        if touch_line_range is None:
+            touch_line_range = (0, self._markings.touch_line)
+        if goal_line_range is None:
+            goal_line_range = (0, self._markings.goal_line)
+        return touch_line_range, goal_line_range
+
+    def _calc_half_range(
+        self, range_: tuple[float, float], side: str
     ) -> tuple[float, float]:
         if side == "left":
             return (
-                axis_range[0],
-                axis_range[0] + (axis_range[1] - axis_range[0]) / 2,
+                range_[0],
+                range_[0] + (range_[1] - range_[0]) / 2,
             )
         if side == "right":
             return (
-                axis_range[0] + (axis_range[1] - axis_range[0]) / 2,
-                axis_range[1],
+                range_[0] + (range_[1] - range_[0]) / 2,
+                range_[1],
             )
         raise ValueError(f"Invalid side: {side}. Expected 'left' or 'right'.")
 
     def _calc_ranges(
         self,
-        length_range: tuple[float, float],
-        width_range: tuple[float, float],
+        touch_line_range: tuple[float, float],
+        goal_line_range: tuple[float, float],
     ) -> tuple[tuple[float, float], tuple[float, float]]:
         if self._side != "both":
-            length_range = self._calc_half_axix_range(length_range, self._side)
-        return length_range, width_range
-    
+            touch_line_range = self._calc_half_range(
+                touch_line_range, self._side
+            )
+        return touch_line_range, goal_line_range
+
     def _set_axis_ranges(
         self,
-        length_range: tuple[float, float],
-        width_range: tuple[float, float],
+        touch_line_range: tuple[float, float],
+        goal_line_range: tuple[float, float],
     ) -> tuple[tuple[float, float], tuple[float, float]]:
-        xaxis_range, yaxis_range = length_range, width_range
+        xaxis_range, yaxis_range = touch_line_range, goal_line_range
         if self._vertical:
-            xaxis_range, yaxis_range = width_range, length_range
+            xaxis_range, yaxis_range = goal_line_range, touch_line_range
         return xaxis_range, yaxis_range
 
     @property
@@ -247,16 +257,16 @@ class PitchCoordinates:
         return self._markings
 
     @property
-    def length(self) -> float:
-        return abs(self._length_range[1] - self._length_range[0])
+    def touch_line(self) -> float:
+        return abs(self._touch_line_range[1] - self._touch_line_range[0])
 
     @property
-    def width(self) -> float:
-        return abs(self._width_range[1] - self._width_range[0])
+    def goal_line(self) -> float:
+        return abs(self._goal_line_range[1] - self._goal_line_range[0])
 
     @property
     def aspect_ratio(self) -> float:
-        return self.width / self.length
+        return self.goal_line / self.touch_line
 
     @property
     def xaxis_range(self) -> tuple[float, float]:
@@ -293,14 +303,22 @@ class PitchCoordinates:
     @property
     def _full_xaxis_length(self) -> float:
         if self._vertical:
-            return abs(self._full_width_range[1] - self._full_width_range[0])
-        return abs(self._full_length_range[1] - self._full_length_range[0])
+            return abs(
+                self._full_goal_line_range[1] - self._full_goal_line_range[0]
+            )
+        return abs(
+            self._full_touch_line_range[1] - self._full_touch_line_range[0]
+        )
 
     @property
     def _full_yaxis_length(self) -> float:
         if self._vertical:
-            return abs(self._full_length_range[1] - self._full_length_range[0])
-        return abs(self._full_width_range[1] - self._full_width_range[0])
+            return abs(
+                self._full_touch_line_range[1] - self._full_touch_line_range[0]
+            )
+        return abs(
+            self._full_goal_line_range[1] - self._full_goal_line_range[0]
+        )
 
     def pitch_area(self) -> Area:
         return Area(
@@ -575,8 +593,8 @@ class BackgroundPitchCoordinates(PitchCoordinates):
     ) -> None:
         super().__init__(
             markings=markings,
-            length_range=(0, markings.length),
-            width_range=(0, markings.width),
+            touch_line_range=(0, markings.touch_line),
+            goal_line_range=(0, markings.goal_line),
             vertical=vertical,
             side=side,
         )

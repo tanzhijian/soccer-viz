@@ -25,8 +25,8 @@ def test_pitch_markings_defaults() -> None:
 
 def test_pitch_markings_vertical_custom() -> None:
     markings = PitchMarkings(
-        length=120,
-        width=80,
+        touch_line=120,
+        goal_line=80,
         use_standard=False,
         center_circle_radius=10,
         penalty_area_length=18,
@@ -160,8 +160,8 @@ class TestCustomCoordinates:
     @pytest.fixture(scope="class")
     def coordinates(self) -> PitchCoordinates:
         markings = PitchMarkings(
-            length=120,
-            width=80,
+            touch_line=120,
+            goal_line=80,
             center_circle_radius=10,
             penalty_area_length=18,
             penalty_mark_distance=12,

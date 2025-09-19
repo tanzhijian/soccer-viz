@@ -92,8 +92,8 @@ class Pitch:
     def __init__(
         self,
         *,
-        length_range: tuple[float, float] | None = None,
-        width_range: tuple[float, float] | None = None,
+        touch_line_range: tuple[float, float] | None = None,
+        goal_line_range: tuple[float, float] | None = None,
         markings: PitchMarkings | None = None,
         vertical: bool = False,
         side: Literal["left", "right", "both"] = "both",
@@ -107,8 +107,8 @@ class Pitch:
             markings=self._markings, vertical=vertical, side=side
         )
         self._coordinates = PitchCoordinates(
-            length_range=length_range,
-            width_range=width_range,
+            touch_line_range=touch_line_range,
+            goal_line_range=goal_line_range,
             markings=self._markings,
             vertical=vertical,
             side=side,
